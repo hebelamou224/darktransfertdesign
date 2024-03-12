@@ -1,0 +1,62 @@
+name: darktransfert
+description: "Une application de gestion de transfert main à main"
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.1 <4.0.0'
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http:
+
+
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.6
+  google_fonts: ^5.1.0
+  printing: ^5.12.0
+  local_auth: ^2.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+
+  flutter_lints: ^3.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  #
+  assets:
+    - assets/images/
+
+
+  fonts:
+    - family: Montserrat
+      fonts:
+        - asset: assets/fonts/montserrat/MontserratAlternates-Regular.ttf
+        - asset: assets/fonts/montserrat/MontserratAlternates-Medium.ttf
+        - asset: assets/fonts/montserrat/MontserratAlternates-Black.ttf
+        - asset: assets/fonts/montserrat/MontserratAlternates-Light.ttf
+    - family: mont
+      fonts:
+        - asset: assets/fonts/mont/Montserrat-Regular.ttf
+        - asset: assets/fonts/mont/Montserrat-Medium.ttf
+        - asset: assets/fonts/mont/Montserrat-SemiBold.ttf
+        - asset: assets/fonts/mont/Montserrat-Bold.ttf
+        - asset: assets/fonts/mont/Montserrat-Light.ttf
