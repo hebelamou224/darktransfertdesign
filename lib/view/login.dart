@@ -1,3 +1,5 @@
+import 'package:darktransfert/model/user.dart';
+import 'package:darktransfert/repository/user_repository.dart';
 import 'package:darktransfert/view/components/animation_delay.dart';
 import 'package:flutter/material.dart';
 
@@ -12,6 +14,39 @@ class _LoginPageState extends State<LoginPage> {
   final controllerUsername = TextEditingController();
   final controllerPassword = TextEditingController();
   final formKey = GlobalKey<FormState>();
+  late User userConnected ;
+  late Future<List<User>> data;
+
+  @override
+  void initState() {
+    super.initState();
+    data = UserRepository.fetchUsers();
+    print(data);
+    userConnected = User(
+        id: 0,
+        username: "",
+        fullname: "",
+        photo: "",
+        password: "",
+        role: "",
+        telephone: "");
+  }
+  void initUserConnect(){
+    userConnected.username = "";
+    userConnected.fullname = "";
+    userConnected.password = "";
+    userConnected.role = "";
+    userConnected.telephone = "";
+  }
+  void auth() async{
+    User userFinding =  await UserRepository.findUser(controllerUsername.text, controllerPassword.text);
+    setState(()  {
+      initUserConnect();
+      userConnected = userFinding;
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,11 +79,11 @@ class _LoginPageState extends State<LoginPage> {
                   height: 30,
                 ),
                 const DelayAnimation(
-                    delay: 2500,
-                    child:  Text(
-                      "CONNEXION",
-                      style: TextStyle(fontSize: 20),
-                    ),
+                  delay: 2500,
+                  child:  Text(
+                    "CONNEXION",
+                    style: TextStyle(fontSize: 20),
+                  ),
                 ),
                 const SizedBox(
                   height: 20,
@@ -92,31 +127,33 @@ class _LoginPageState extends State<LoginPage> {
                       child: ElevatedButton(
                         onPressed: () {
                           if (formKey.currentState!.validate()) {
-                            if (controllerUsername.text == "admin" &&
-                                controllerPassword.text == "admin") {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text("Authentification validé"),
-                                backgroundColor: Colors.green,
-                              ));
-                              Navigator.popAndPushNamed(context, "/dg");
-                            }else if(controllerUsername.text == "comptable" &&
-                                controllerPassword.text == "comptable"){
-                              Navigator.popAndPushNamed(context, "/comptable");
-                            }else if(controllerUsername.text == "caissier" &&
-                                controllerPassword.text == "caissier"){
-                              Navigator.popAndPushNamed(context, "/caissier");
+                            auth();
+                            
+                            if(userConnected.username == controllerUsername.text &&
+                            userConnected.password == controllerPassword.text){
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('${userConnected.username} vous êtes connnecté', style: TextStyle(color: Colors.white),),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
 
-                            }
-                            else {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text(
-                                    "Nom d'utilisateur ou mot de pass incorrect"),
-                                backgroundColor: Colors.red,
-                              ));
-                            }
+                              if (userConnected.role == "ADMIN") {
+                                Navigator.popAndPushNamed(context, "/dg");
+                              }else if(userConnected.role == "COMPTABLE"){
+                                Navigator.popAndPushNamed(context, "/comptable");
+                              }else if(userConnected.role == "COMPTABLE"){
+                                Navigator.popAndPushNamed(context, "/CAISSIER");
+                              }
 
+                            }else{
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Username ou Password incorrect", style: TextStyle(color: Colors.white),),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           }
                         },
                         style: ElevatedButton.styleFrom(

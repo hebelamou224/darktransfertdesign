@@ -31,7 +31,7 @@ class _ComptableAreaState extends State<ComptableArea> {
                       Navigator.of(context).pop();
                     }, child: Text("NON",style: TextStyle(color: Colors.red),)),
                     TextButton(onPressed: (){
-                      Navigator.popAndPushNamed(context, "/login");
+                      Navigator.pushNamed(context, "/login");
                     }, child: Text("OUI"))
                   ],
                 )
