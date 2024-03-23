@@ -1,5 +1,6 @@
 
-import 'package:darktransfert/view/caissier/registre_customer.dart';
+import 'package:darktransfert/user_connect_info.dart';
+import 'package:darktransfert/view/caissier/caissier_area.dart';
 import 'package:darktransfert/view/favorite.dart';
 import 'package:darktransfert/view/user.dart';
 import 'package:flutter/material.dart';
@@ -30,26 +31,27 @@ class NavigationDrawerAgency extends StatelessWidget {
           Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const UserPage()));
         },
         child: Container(
-          //color: Colors.blue.shade700,
           padding:
               EdgeInsets.only(top: MediaQuery.of(context).padding.top, bottom: 24),
-          child: const Column(
+          child:  Column(
             children:  [
               CircleAvatar(
                 radius: 52,
-                backgroundImage: NetworkImage(
-                    "https://media.istockphoto.com/id/1476170969/fr/photo/portrait-dun-jeune-homme-pr%C3%AAt-%C3%A0-lemploi-business-concept.webp?b=1&s=170667a&w=0&k=20&c=y1iV8F--V8Q-L1YvZvAcA7Z0XeOkK4cmRUdeHz_gz_I="),
+               backgroundColor: Colors.orange,
+               /* backgroundImage: NetworkImage(
+                    "https://media.istockphoto.com/id/1476170969/fr/photo/portrait-dun-jeune-homme-pr%C3%AAt-%C3%A0-lemploi-business-concept.webp?b=1&s=170667a&w=0&k=20&c=y1iV8F--V8Q-L1YvZvAcA7Z0XeOkK4cmRUdeHz_gz_I="),*/
+                child: Center(child: Text(UserConnected.letterOfName(), style: const TextStyle(fontSize: 27, fontWeight: FontWeight.bold),),),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 12,
               ),
               Text(
-                "Moriba Hebelamou",
-                style: TextStyle(fontSize: 28, color: Colors.white),
+                "${UserConnected.fullname}",
+                style: const TextStyle(fontSize: 28, color: Colors.white),
               ),
               Text(
-                "dev.hebelamou@gmail.com",
-                style: TextStyle(fontSize: 16, color: Colors.white),
+                "${UserConnected.telephone}",
+                style: const TextStyle(fontSize: 16, color: Colors.white),
               )
             ],
           ),
@@ -69,7 +71,7 @@ class NavigationDrawerAgency extends StatelessWidget {
             title: const Text("Acceuil"),
             onTap: () {
               Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const CaisierArea()));
+                  MaterialPageRoute(builder: (context) => const CaissierArea()));
             },
           ),
           ListTile(

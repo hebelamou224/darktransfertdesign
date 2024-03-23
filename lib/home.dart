@@ -1,6 +1,12 @@
-
+import 'package:darktransfert/model/partner.dart';
+import 'package:darktransfert/service/partner_services.dart';
+import 'package:darktransfert/view/agency/page/create_employee.dart';
+import 'package:darktransfert/view/agency/page/deposit_account_agency.dart';
 import 'package:darktransfert/view/agency/persone.dart';
 import 'package:darktransfert/view/components/drawer_menu.dart';
+import 'package:darktransfert/view/agency/page/create_agency.dart';
+import 'package:darktransfert/view/partner/page/create_partner.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class HomeMain extends StatefulWidget {
@@ -11,6 +17,16 @@ class HomeMain extends StatefulWidget {
 }
 
 class _HomeState extends State<HomeMain> {
+
+  PartnerService partnerService = PartnerService();
+  late Future<List<Partner>> partners;
+
+  @override
+  void initState() {
+    super.initState();
+    partners = partnerService.findAllPartner();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,25 +37,33 @@ class _HomeState extends State<HomeMain> {
               color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
         ),
         actions: [
-          IconButton(onPressed: (){
+          IconButton(
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    builder: (builder) => AlertDialog(
+                          title: const Text("Deconnexion"),
+                          content: const Text("Voullez vous deconnectez ?"),
+                          actions: [
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text(
+                                  "NON",
+                                  style: TextStyle(color: Colors.red),
+                                )),
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.popAndPushNamed(context, "/login");
+                                },
+                                child: const Text("OUI"))
+                          ],
+                        ));
 
-            showDialog(context: context, builder: (builder)=>
-              AlertDialog(
-                title: const Text("Deconnexion"),
-                content: Text("Voullez vous deconnectez ?"),
-                actions: [
-                  TextButton(onPressed: (){
-                    Navigator.of(context).pop();
-                  }, child: const Text("NON",style: TextStyle(color: Colors.red),)),
-                  TextButton(onPressed: (){
-                    Navigator.popAndPushNamed(context, "/login");
-                  }, child: const Text("OUI"))
-                ],
-              )
-            );
-
-            //Navigator.popAndPushNamed(context, "/login");
-          }, icon: const Icon(Icons.logout))
+                //Navigator.popAndPushNamed(context, "/login");
+              },
+              icon: const Icon(Icons.logout))
         ],
       ),
       drawer: const NavigationDrawers(),
@@ -73,8 +97,7 @@ class _HomeState extends State<HomeMain> {
               separetedSize(),
               rowOfPage(),
               separetedSize(),
-              myPatner(),
-
+              listPartners(),
             ],
           ),
         ),
@@ -84,97 +107,170 @@ class _HomeState extends State<HomeMain> {
 
   SingleChildScrollView myPatner() {
     return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    Column(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          height: 70,
-                          width: 70,
-                          child: const CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRx0CIy3mIbpe2nuLRfK5xxPcwxmTvXjJsBNw&usqp=CAU")),
-                        ),
-                        const Text(
-                          "Moriba",
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        )
-                      ],
-                    ),
-                    const SizedBox(width: 15,),
-                    Column(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          height: 70,
-                          width: 70,
-                          child: const CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGeg0a5wyDchHuY6tgbDkWKNLYiS7vHn4w4g&usqp=CAU")),
-                        ),
-                        const Text(
-                          "Antoine",
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        )
-                      ],
-                    ),
-                    const SizedBox(width: 15,),
-                    Column(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          height: 70,
-                          width: 70,
-                          child: const  CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZd8IFhFAzVB_AdUsDwZMmRzafOAhzsQ_JlQ&usqp=CAU")),
-                        ),
-                        const Text(
-                          "Foromo",
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        )
-                      ],
-                    ),
-                    const SizedBox(width: 15,),
-                    Column(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          height: 70,
-                          width: 70,
-                          child: const CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbIhi9l4npCGPNWMAc6szDbxp75kjB3c0R5w&usqp=CAU")),
-                        ),
-                        const Text(
-                          "Fatoumata",
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        )
-                      ],
-                    ),
-                    const SizedBox(width: 15,),
-                    Column(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          height: 70,
-                          width: 70,
-                          child: const CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRA1af5Ah2OAIP2yd5c6dRKv86-oWMrz4Kd8A&usqp=CAU")),
-                        ),
-                        const  Text(
-                          "Bernard",
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        )
-                      ],
-                    )
-                  ],
-                ),
-              );
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                height: 70,
+                width: 70,
+                child: const CircleAvatar(
+                    backgroundImage: NetworkImage(
+                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRx0CIy3mIbpe2nuLRfK5xxPcwxmTvXjJsBNw&usqp=CAU")),
+              ),
+              const Text(
+                "Moriba",
+                style: TextStyle(fontWeight: FontWeight.w500),
+              )
+            ],
+          ),
+          const SizedBox(
+            width: 15,
+          ),
+          Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                height: 70,
+                width: 70,
+                child: const CircleAvatar(
+                    backgroundImage: NetworkImage(
+                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGeg0a5wyDchHuY6tgbDkWKNLYiS7vHn4w4g&usqp=CAU")),
+              ),
+              const Text(
+                "Antoine",
+                style: TextStyle(fontWeight: FontWeight.w500),
+              )
+            ],
+          ),
+          const SizedBox(
+            width: 15,
+          ),
+          Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                height: 70,
+                width: 70,
+                child: const CircleAvatar(
+                    backgroundImage: NetworkImage(
+                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZd8IFhFAzVB_AdUsDwZMmRzafOAhzsQ_JlQ&usqp=CAU")),
+              ),
+              const Text(
+                "Foromo",
+                style: TextStyle(fontWeight: FontWeight.w500),
+              )
+            ],
+          ),
+          const SizedBox(
+            width: 15,
+          ),
+          Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                height: 70,
+                width: 70,
+                child: const CircleAvatar(
+                    backgroundImage: NetworkImage(
+                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbIhi9l4npCGPNWMAc6szDbxp75kjB3c0R5w&usqp=CAU")),
+              ),
+              const Text(
+                "Fatoumata",
+                style: TextStyle(fontWeight: FontWeight.w500),
+              )
+            ],
+          ),
+          const SizedBox(
+            width: 15,
+          ),
+          Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                height: 70,
+                width: 70,
+                child: const CircleAvatar(
+                    backgroundImage: NetworkImage(
+                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRA1af5Ah2OAIP2yd5c6dRKv86-oWMrz4Kd8A&usqp=CAU")),
+              ),
+              const Text(
+                "Bernard",
+                style: TextStyle(fontWeight: FontWeight.w500),
+              )
+            ],
+          )
+        ],
+      ),
+    );
   }
+
+  FutureBuilder listPartners() {
+    return FutureBuilder(
+      future: partners,
+      builder: (context, snapshot){
+        if(snapshot.connectionState == ConnectionState.waiting){
+          return const CircularProgressIndicator();
+        }else if(snapshot.hasError){
+          return  Container(
+            padding: const EdgeInsets.all(10),
+            child: const Text("Error de chargement des partenaires", style: TextStyle(color: Colors.red),),
+          );
+        }else{
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: List.from(snapshot.data?.map((partner){
+                String fullname = partner.fullname.trim();
+                String firstname = fullname.split(' ').first;
+                String lastname = fullname.split(' ').last;
+                String firstLetterFirstname = firstname.substring(0,1).toUpperCase();
+                String firstLetterLastname = "";
+                if(lastname.isNotEmpty){
+                  firstLetterLastname = lastname.substring(0,1).toUpperCase();
+                }else{
+                  firstLetterLastname = firstname.substring(0,1).toUpperCase();
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      InkWell(
+                        onTap: (){
+
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(left: 20),
+                          height: 70,
+                          width: 70,
+                          child:  CircleAvatar(
+                            backgroundColor: Colors.orange,
+                            child: Center(child:  Text('$firstLetterFirstname$firstLetterLastname',
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Colors.white),),
+                            ),
+                             /* backgroundImage: NetworkImage(
+                                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRA1af5Ah2OAIP2yd5c6dRKv86-oWMrz4Kd8A&usqp=CAU")*/),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.all(10),
+                        child: Text(
+                          firstname,
+                            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
+                        ),
+                      )
+                    ]
+                );
+              }).toList(),)
+            ),
+          );
+        }
+      },
+    );
+  }
+
 
   SizedBox separetedSize() {
     return const SizedBox(
@@ -306,6 +402,10 @@ class _HomeState extends State<HomeMain> {
       children: [
         Expanded(
             child: InkWell(
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (build) => const CreateAgency()));
+            },
           child: Container(
             height: 80,
             decoration: BoxDecoration(
@@ -324,15 +424,16 @@ class _HomeState extends State<HomeMain> {
               ],
             ),
           ),
-          onTap: () {
-            //Navigator.of(context).push(MaterialPageRoute(builder: (builder)=> const Personnel()));
-          },
         )),
         const SizedBox(
           width: 20,
         ),
         Expanded(
             child: InkWell(
+          onTap: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (build) => const CreatePartner()));
+          },
           child: Container(
             height: 80,
             decoration: BoxDecoration(
@@ -375,8 +476,9 @@ class _HomeState extends State<HomeMain> {
               ],
             ),
           ),
-          onTap: (){
-            Navigator.of(context).push(MaterialPageRoute(builder: (builder)=> const Personnel()));
+          onTap: () {
+            Navigator.of(context).push(
+                MaterialPageRoute(builder: (builder) => const CreateEmployee()));
           },
         )),
         const SizedBox(
@@ -410,7 +512,6 @@ class _HomeState extends State<HomeMain> {
     );
   }
 
-
   Row buttonRowTwo() {
     return Row(
       children: [
@@ -435,7 +536,8 @@ class _HomeState extends State<HomeMain> {
             ),
           ),
           onTap: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (builder)=> const Personnel()));
+            Navigator.of(context).push(
+                MaterialPageRoute(builder: (builder) => const DepositAccountAgency()));
           },
         )),
         const SizedBox(
@@ -485,8 +587,9 @@ class _HomeState extends State<HomeMain> {
               ],
             ),
           ),
-          onTap: (){
-            Navigator.of(context).push(MaterialPageRoute(builder: (builder)=> const Personnel()));
+          onTap: () {
+            Navigator.of(context).push(
+                MaterialPageRoute(builder: (builder) => const Personnel()));
           },
         )),
         const SizedBox(

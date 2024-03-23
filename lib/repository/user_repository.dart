@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:darktransfert/model/employee.dart';
 import 'package:darktransfert/model/user.dart';
 import 'package:http/http.dart' as http;
 
@@ -27,21 +28,32 @@ class UserRepository{
     if(response.statusCode == 200){
      print("Liste des utilisateurs");
 
-     print(response.body);
+    // print(response.body);
       return [];
     }
     throw Exception("Failed to load Users");
 
   }
 
-  static Future<User> findUser(String username, String password) async{
+  static Future<Employee?> findUser(String username, String password) async{
     final response = await http
-        .get(Uri.parse("http://192.168.21.113:8080/v1/api/transfert/user?username=$username&&password=$password"));
+        .get(Uri.parse("http://192.168.21.113:8080/v1/api/transfert/employee?username=$username&&password=$password"));
     if(response.statusCode == 200){
-      User user = User.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
-      return user;
+      var object = jsonDecode(response.body);
+      Employee employee = Employee(
+          id: object["id"],
+          username: object["username"],
+          fullname: object["fullname"],
+          address: object["address"],
+          telephone: object["telephone"],
+          dateRegister: object["dateRegister"],
+          role: object["role"],
+          identifyAgency: object["identifyAgency"],
+          password: object["password"]
+      );
+      return employee;
     }
-    throw Exception("Nom d'utilisateur ou mot de pass incorrect");
+    return null;
 
   }
 

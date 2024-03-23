@@ -1,15 +1,31 @@
+import 'package:darktransfert/model/agency.dart';
+import 'package:darktransfert/service/agency_service.dart';
+import 'package:darktransfert/user_connect_info.dart';
 import 'package:darktransfert/view/agency/persone.dart';
+import 'package:darktransfert/view/caissier/pages/deposit.dart';
+import 'package:darktransfert/view/caissier/pages/withdrawal.dart';
 import 'package:darktransfert/view/components/drawer_menu_agency.dart';
 import 'package:flutter/material.dart';
 
-class CaisierArea extends StatefulWidget {
-  const CaisierArea({super.key});
+class CaissierArea extends StatefulWidget {
+  const CaissierArea({super.key});
 
   @override
-  State<CaisierArea> createState() => _CaisierAreaState();
+  State<CaissierArea> createState() => _CaissierAreaState();
 }
 
-class _CaisierAreaState extends State<CaisierArea> {
+class _CaissierAreaState extends State<CaissierArea> {
+  AgencyService agencyService = AgencyService();
+
+  bool showAccountSolde = true;
+  late Future<Agency?> agencyFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency!);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,25 +36,33 @@ class _CaisierAreaState extends State<CaisierArea> {
               color: Colors.white, fontWeight: FontWeight.w500, fontSize: 18),
         ),
         actions: [
-          IconButton(onPressed: (){
+          IconButton(
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    builder: (builder) => AlertDialog(
+                          title: const Text("Deconnexion"),
+                          content: const Text("Voullez vous deconnectez ?"),
+                          actions: [
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text(
+                                  "NON",
+                                  style: TextStyle(color: Colors.red),
+                                )),
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.popAndPushNamed(context, "/login");
+                                },
+                                child: const Text("OUI"))
+                          ],
+                        ));
 
-            showDialog(context: context, builder: (builder)=>
-                AlertDialog(
-                  title: Text("Deconnexion"),
-                  content: Text("Voullez vous deconnectez ?"),
-                  actions: [
-                    TextButton(onPressed: (){
-                      Navigator.of(context).pop();
-                    }, child: Text("NON",style: TextStyle(color: Colors.red),)),
-                    TextButton(onPressed: (){
-                      Navigator.popAndPushNamed(context, "/login");
-                    }, child: Text("OUI"))
-                  ],
-                )
-            );
-
-            //Navigator.popAndPushNamed(context, "/login");
-          }, icon: const Icon(Icons.logout))
+                //Navigator.popAndPushNamed(context, "/login");
+              },
+              icon: const Icon(Icons.logout))
         ],
       ),
       drawer: const NavigationDrawerAgency(),
@@ -81,23 +105,81 @@ class _CaisierAreaState extends State<CaisierArea> {
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.only(bottom: 15),
       width: double.infinity,
-      height: 240,
+      height: 250,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5), color: Colors.white),
       child: Column(
         children: [
+          FutureBuilder(
+              future: agencyFuture,
+              builder: (context, snasop){
+                if(snasop.connectionState == ConnectionState.waiting){
+                  return const CircularProgressIndicator();
+                }else if(snasop.hasError){
+                  return const Center(child: Text("Error de chargement"),);
+                }else{
+                  return Text(
+                    "${snasop.data?.name.toUpperCase()}",
+                    style: const  TextStyle(
+                        color: Colors.black54, fontWeight: FontWeight.w500, fontSize: 20
+                    ),
+                  );
+                }
+              }
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextButton(
+              showAccountSolde ? TextButton(
                   onPressed: () {
-                    setState(() {});
+                    setState(() {
+                      agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency!);
+                      showAccountSolde = false;
+                    });
                   },
-                  child: const Text(
-                    "500255.6655 FGN",
-                    style: TextStyle(
-                        color: Colors.orange, fontWeight: FontWeight.bold),
-                  ))
+                  child: const Row(
+                    children: [
+                      Icon(Icons.visibility, color: Colors.orange,),
+                      SizedBox(width: 10,),
+                      Text(
+                        "AFFICHER LE SOLDE",
+                        style: TextStyle(
+                            color: Colors.orange, fontWeight: FontWeight.w500),
+                      )
+                    ],
+                  )
+              ):
+                  TextButton(
+                      onPressed: () {
+                        setState(() {
+                          agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency!);
+                          showAccountSolde = true;
+                        });
+                      },
+                      child:  Row(
+                        children: [
+                          const Icon(Icons.visibility_off, color: Colors.orange,),
+                          const SizedBox(width: 10,),
+                          FutureBuilder(
+                              future: agencyFuture,
+                              builder: (context, snasop){
+                                if(snasop.connectionState == ConnectionState.waiting){
+                                  return const CircularProgressIndicator(color: Colors.orange,);
+                                }else if(snasop.hasError){
+                                  return const Center(child: Text("Error de chargement"),);
+                                }else{
+                                  return Text(
+                                    "${snasop.data?.account} GNF",
+                                    style: const  TextStyle(
+                                        color: Colors.orange, fontWeight: FontWeight.w500, fontSize: 18
+                                    ),
+                                  );
+                                }
+                              }
+                          ),
+                        ],
+                      )
+                  )
             ],
           ),
           const SizedBox(
@@ -213,8 +295,7 @@ class _CaisierAreaState extends State<CaisierArea> {
             ),
           ),
           onTap: () {
-            deposit();
-            //Navigator.of(context).push(MaterialPageRoute(builder: (builder)=> const Personnel()));
+            Navigator.of(context).push(MaterialPageRoute(builder: (builder)=> const DepositAgencyCustome()));
           },
         )),
         const SizedBox(
@@ -241,7 +322,7 @@ class _CaisierAreaState extends State<CaisierArea> {
             ),
           ),
           onTap: () {
-            deposit();
+            Navigator.of(context).push(MaterialPageRoute(builder: (builder)=> const WithDrawalAgencyCustome()));
           },
         )),
         const SizedBox(
@@ -304,105 +385,6 @@ class _CaisierAreaState extends State<CaisierArea> {
         )),
       ],
     );
-  }
-
-  Future<dynamic> deposit() {
-    final controllerAdress = TextEditingController();
-    final controllerFullName = TextEditingController();
-    final controllerTelephone = TextEditingController();
-    final controllerAmount = TextEditingController();
-    final formKeyDeposit = GlobalKey<FormState>();
-
-    return showDialog(
-        context: context,
-        builder: (builder) => AlertDialog(
-              title: const Text("Depot"),
-              content: Form(
-                  key: formKeyDeposit,
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: "Nom complet*"),
-                        controller: controllerFullName,
-                        validator: (value) =>
-                            value == "" ? "Le champs est requis" : null,
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      TextFormField(
-                        decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: "Adresse*"),
-                        controller: controllerAdress,
-                        validator: (value) =>
-                            value == "" ? "Le champs est requis" : null,
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      TextFormField(
-                        keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: "Telephone*"),
-                        controller: controllerTelephone,
-                        validator: (value) =>
-                            value == "" ? "Le champs est requis" : null,
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      TextFormField(
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: "Montant*"),
-                        controller: controllerAmount,
-                        validator: (value) =>
-                            value == "" ? "Le champs est requis" : null,
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      SizedBox(
-                        height: 40,
-                        width: double.infinity,
-                        child: ElevatedButton(
-                            onPressed: () {
-                              if (formKeyDeposit.currentState!.validate()) {
-                                Navigator.pop(builder);
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
-                                  content: Text("Enregistrement en cours"),
-                                  backgroundColor: Colors.green,
-                                ));
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange),
-                            child: const Text("Validé")),
-                      )
-                    ],
-                  )),
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      "Annuler",
-                      style: TextStyle(color: Colors.red),
-                    )),
-                TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text("Fermer"))
-              ],
-            ));
   }
 
   Row buttonRowTwo() {
