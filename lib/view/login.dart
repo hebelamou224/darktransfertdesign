@@ -128,8 +128,8 @@ class _LoginPageState extends State<LoginPage> {
                             });
                             Employee? userFinding;
                             userFinding = await UserRepository.findUser(
-                                controllerUsername.text,
-                                controllerPassword.text);
+                                controllerUsername.text.trim(),
+                                controllerPassword.text.trim());
                             if (userFinding != null) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(

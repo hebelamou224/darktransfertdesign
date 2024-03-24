@@ -134,9 +134,39 @@ class AgencyRepository {
           lieu:  data["lieu"],
           account:  data["account"]
       );
-      print(agency);
       return agency;
     }
     return null;
   }
+
+  Future<String> withdrawal(String codeWithdrawal) async {
+    Uri url = Uri.parse("http://${Constant
+        .IP_ADDRESS}:8080/v1/api/transfert/operation/withdrawal/$codeWithdrawal");
+    final response = await http.put(url);
+    if (response.statusCode == 200) {
+      return "succes";
+    }
+    return "not_succes";
+  }
+
+  Future<Agency?> updateAccountAgencyAfterOperation(
+      String identifyAgency, double amount, String type) async {
+    Uri url = Uri.parse("http://${Constant
+        .IP_ADDRESS}:8080/v1/api/transfert/agency/updateAccount/$identifyAgency?amount=$amount&&type=$type");
+    final response = await http.put(url);
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      Agency agency = Agency(id: data["id"],
+          identify:  data["identify"],
+          name:  data["name"],
+          description:  data["description"],
+          lieu:  data["lieu"],
+          account:  data["account"]
+      );
+      return agency;
+    }
+    return null;
+  }
+
+
 }

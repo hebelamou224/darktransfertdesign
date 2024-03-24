@@ -34,4 +34,12 @@ class AgencyService{
     return await agencyRepository.updateAccountAgencyAfterOperationDeposit(identifyAgency, amount);
   }
 
+  Future<String> withdrawal(String codeWithdrawal) async{
+    return await agencyRepository.withdrawal(codeWithdrawal);
+  }
+
+  Future<Agency?> updateAccountAgencyAfterOperation(String identifyAgency, double amount, String type) async{
+    return await agencyRepository.updateAccountAgencyAfterOperation(identifyAgency, amount, type);
+  }
+
 }

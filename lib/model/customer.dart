@@ -10,6 +10,11 @@ class Customer {
   String phoneRecever;
   String addressRecever;
   String mailRecever;
+  double? amount;
+  String? dateDeposit;
+  bool? status;
+  String? type;
+  String? dateWithdrawal;
 
   Customer({
     required this.id,
@@ -22,7 +27,12 @@ class Customer {
     required this.fullnameRecever,
     required this.phoneRecever,
     required this.addressRecever,
-    required this.mailRecever
+    required this.mailRecever,
+    this.amount,
+    this.dateDeposit,
+    this.dateWithdrawal,
+    this.status,
+    this.type
   });
 
   factory Customer.fromJson(Map<String, dynamic> json){

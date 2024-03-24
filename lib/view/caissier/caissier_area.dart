@@ -6,6 +6,9 @@ import 'package:darktransfert/view/caissier/pages/deposit.dart';
 import 'package:darktransfert/view/caissier/pages/withdrawal.dart';
 import 'package:darktransfert/view/components/drawer_menu_agency.dart';
 import 'package:flutter/material.dart';
+import 'package:page_animation_transition/animations/right_to_left_faded_transition.dart';
+import 'package:page_animation_transition/page_animation_transition.dart';
+
 
 class CaissierArea extends StatefulWidget {
   const CaissierArea({super.key});
@@ -114,9 +117,9 @@ class _CaissierAreaState extends State<CaissierArea> {
               future: agencyFuture,
               builder: (context, snasop){
                 if(snasop.connectionState == ConnectionState.waiting){
-                  return const CircularProgressIndicator();
+                  return const CircularProgressIndicator(color: Colors.orange,);
                 }else if(snasop.hasError){
-                  return const Center(child: Text("Error de chargement"),);
+                  return const Center(child: Text("Error de chargement", style: TextStyle(color: Colors.red),),);
                 }else{
                   return Text(
                     "${snasop.data?.name.toUpperCase()}",
@@ -295,7 +298,12 @@ class _CaissierAreaState extends State<CaissierArea> {
             ),
           ),
           onTap: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (builder)=> const DepositAgencyCustome()));
+            //Navigator.of(context).push(MaterialPageRoute(builder: (builder)=> const DepositAgencyCustome()));
+            Navigator.of(context).push(PageAnimationTransition(
+                page: const DepositAgencyCustome(),
+                pageAnimationType: RightToLeftFadedTransition()
+              )
+            );
           },
         )),
         const SizedBox(
@@ -322,7 +330,11 @@ class _CaissierAreaState extends State<CaissierArea> {
             ),
           ),
           onTap: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (builder)=> const WithDrawalAgencyCustome()));
+            Navigator.of(context).push(PageAnimationTransition(
+                page: const WithDrawalAgencyCustome(),
+                pageAnimationType: RightToLeftFadedTransition()
+            )
+            );
           },
         )),
         const SizedBox(
