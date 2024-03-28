@@ -1,5 +1,6 @@
 
 import 'package:darktransfert/home.dart';
+import 'package:darktransfert/user_connect_info.dart';
 import 'package:darktransfert/view/favorite.dart';
 import 'package:darktransfert/view/user.dart';
 import 'package:flutter/material.dart';

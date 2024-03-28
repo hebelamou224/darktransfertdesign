@@ -1,18 +1,20 @@
+
 class UserConnected{
-  static int? id;
-  static String? username;
-  static String? fullname;
-  static String? firstname;
-  static String? lastname;
-  static String? dateConnected;
-  static String? password;
-  static String? telephone;
-  static String? dateRegister;
-  static String? identifyAgency;
-  static String? role;
+  static int id = 0;
+  static String username = "";
+  static String fullname = "";
+  static String firstname = "";
+  static String lastname = "";
+  static String dateConnected = "";
+  static String password = "";
+  static String telephone = "";
+  static String dateRegister = "";
+  static String identifyAgency = "";
+  static String role = "";
+  static String address = "";
 
   static String  letterOfName(){
-    String fullnameNotSpace = fullname!.trim() ;
+    String fullnameNotSpace = fullname.trim() ;
     List<String> letters = fullnameNotSpace.split(" ");
     String fname = letters.first.substring(0,1);
     String lname = letters.last;

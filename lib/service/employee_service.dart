@@ -13,4 +13,8 @@ class EmployeeService{
     return await employeeRepository.findByUsername(username);
   }
 
+  Future<Employee?> updateInformation(Employee employee) async{
+    return await employeeRepository.updateInformation(employee);
+  }
+
 }

@@ -15,6 +15,7 @@ class Customer {
   bool? status;
   String? type;
   String? dateWithdrawal;
+  String? dateModify;
 
   Customer({
     required this.id,
@@ -32,7 +33,8 @@ class Customer {
     this.dateDeposit,
     this.dateWithdrawal,
     this.status,
-    this.type
+    this.type,
+    this.dateModify
   });
 
   factory Customer.fromJson(Map<String, dynamic> json){

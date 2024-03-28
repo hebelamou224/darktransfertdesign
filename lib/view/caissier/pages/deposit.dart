@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
@@ -5,7 +6,15 @@ import 'package:darktransfert/model/agency.dart';
 import 'package:darktransfert/model/customer.dart';
 import 'package:darktransfert/service/agency_service.dart';
 import 'package:darktransfert/user_connect_info.dart';
+import 'package:darktransfert/view/caissier/pages/search_transaction.dart';
 import 'package:flutter/material.dart';
+import 'package:page_animation_transition/animations/right_to_left_faded_transition.dart';
+import 'package:page_animation_transition/page_animation_transition.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+
+import '../../components/print.dart';
+import 'liste_of_transactions.dart';
 
 class DepositAgencyCustome extends StatefulWidget {
   const DepositAgencyCustome({super.key});
@@ -268,40 +277,41 @@ class _DepositAgencyCustomeState extends State<DepositAgencyCustome> {
                               Future<Customer?> response = agencyService.deposit(customer, amountDeposit);
                               response.then((customer){
                                 if(customer != null){
+
                                   //Update account agency after deposit
-                                  Future<Agency?> agenceFuture = agencyService.updateAccountAgencyAfterOperationDeposit(UserConnected.identifyAgency!, amountDeposit);
+                                  Future<Agency?> agenceFuture = agencyService.updateAccountAgencyAfterOperation(UserConnected.identifyAgency!, amountDeposit,"DEPOSIT");
                                   agenceFuture.then((agency) async {
-                                    if(agency != null){
-                                      //Confirm for the print recu after operation deposit
-                                      if(await confirm(
-                                          context,
+
+                                    //Confirm for the print recu after operation deposit
+                                    if(await confirm(
+                                        context,
                                         title: const Row(children: [
                                           Icon(Icons.check_circle, color: Colors.green,),
                                           Text("Confirmation")
-                                          ],),
-                                        content: const Text("Depot effectué avec succes, souhaitez-vous imprimer le reçu maintenant ?"),
+                                        ],),
+                                        content: const Text("Depot effectué avec succes, souhaitez-vous vous rediriger vers la liste pour imprimer le reçu maintenant ?"),
                                         textOK: const Text("OUI"),
                                         textCancel: const Text("NON", style: TextStyle(color: Colors.red),)
-                                      )){
-                                        //Print here
-                                        setState(() {
-                                          back = true;
-                                        });
-                                      }else{
-                                        setState(() {
-                                          back = true;
-                                        });
-                                      }
-                                    }else{
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text("Echec de mise a jour du compte de l'agence",style:
-                                          TextStyle(color: Colors.white)),
-                                            backgroundColor: Colors.red,)
+                                    )){
+                                      //Print here
+                                      Navigator.pop(context);
+                                      Navigator.of(context).push(
+                                          PageAnimationTransition(
+                                              page: SearchTransaction(initialValue: customer.fullname,),
+                                              pageAnimationType: RightToLeftFadedTransition()
+                                          )
                                       );
+
+                                    }else{
+                                      Navigator.pop(context);
                                     }
+                                  }).catchError((onError){
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text("Echec de mise a jour du compte de l'agence",style:
+                                        TextStyle(color: Colors.white)),
+                                          backgroundColor: Colors.red,)
+                                    );
                                   });
-                                  //Go to home caissier area
-                                  back ? Navigator.pop(context) : null;
                                 }else{
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text("Echec d'enregistrement du depot",style:
@@ -449,7 +459,7 @@ class _DepositAgencyCustomeState extends State<DepositAgencyCustome> {
                           borderSide: BorderSide(
                               color: Colors.orange, width: 2)),
                       labelText: "Nom complet*",
-                      hintText: "Entrer le nom complet*"),
+                      hintText: "Entrer le nom complet aumoins 4 caracteres*"),
                   validator: (value) {
                     if(value!.isEmpty){
                       return "Veuillez entrer le nom complete";

@@ -6,11 +6,16 @@ import 'package:darktransfert/model/customer.dart';
 import 'package:darktransfert/service/agency_service.dart';
 import 'package:darktransfert/service/customer_service.dart';
 import 'package:darktransfert/user_connect_info.dart';
+import 'package:darktransfert/view/caissier/pages/search_transaction.dart';
 import 'package:darktransfert/view/components/field.dart';
+import 'package:darktransfert/view/components/scan_qr_code.dart';
 import 'package:flutter/material.dart';
+import 'package:page_animation_transition/animations/right_to_left_faded_transition.dart';
+import 'package:page_animation_transition/page_animation_transition.dart';
 
 class WithDrawalAgencyCustome extends StatefulWidget {
-  const WithDrawalAgencyCustome({super.key});
+  final String? code;
+  const WithDrawalAgencyCustome({this.code,super.key});
 
   @override
   State<WithDrawalAgencyCustome> createState() =>
@@ -18,9 +23,10 @@ class WithDrawalAgencyCustome extends StatefulWidget {
 }
 
 class _WithDrawalAgencyCustomeState extends State<WithDrawalAgencyCustome> {
+
   CustomerService customerService = CustomerService();
   AgencyService agencyService = AgencyService();
-  final searchController = TextEditingController();
+  late TextEditingController searchController = TextEditingController();
   late Future<Customer?> customers;
   late Future<Agency?> agencyFuture;
 
@@ -44,9 +50,41 @@ class _WithDrawalAgencyCustomeState extends State<WithDrawalAgencyCustome> {
   @override
   void initState() {
     super.initState();
+    if(widget.code != null){
+      searchController.text = widget.code!;
+      setState(() {
+        searchController.text = widget.code!;
+        searchController.text = searchController.text.toUpperCase();
+        customerInformationForWithdrawal = Customer(
+            id: 0,
+            identify: "",
+            fullname: '',
+            telephone: '',
+            address: '',
+            numberIdentify: '',
+            mail: '',
+            fullnameRecever: '',
+            phoneRecever: '',
+            addressRecever: '',
+            mailRecever: '');
+        showIfCodeIsExist = false;
+        show = false;
+        customers = customerService
+            .findByIdentify(searchController.text);
+        customers.then((customer) {
+          setState(() {
+            customerInformationForWithdrawal = customer!;
+            show = true;
+            showIfCodeIsExist = true;
+            // print(customerSearch);
+          });
+        });
+      });
+    }
     customers = customerService.findByIdentify("");
     agencyFuture =
         agencyService.findByIdentifyAgency(UserConnected.identifyAgency!);
+
   }
 
   @override
@@ -77,6 +115,63 @@ class _WithDrawalAgencyCustomeState extends State<WithDrawalAgencyCustome> {
             size: 30,
           ),
         ),
+        actions: [
+          IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                    PageAnimationTransition(
+                        page: const SearchTransaction(),
+                        pageAnimationType: RightToLeftFadedTransition()
+                    )
+                );
+              },
+              icon: const Icon(Icons.search)
+          ),
+          IconButton(
+              onPressed: () async{
+                final result = await Navigator.of(context).push(
+                  PageAnimationTransition(
+                      page: const ScannerQrCode(isScanProviderDrawerMenu: false,),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
+                );
+                //after searched operation with name show result
+                setState(() {
+                  searchController.text = result;
+                  searchController.text = searchController.text.toUpperCase();
+                  setState(() {
+                    customerInformationForWithdrawal = Customer(
+                        id: 0,
+                        identify: "",
+                        fullname: '',
+                        telephone: '',
+                        address: '',
+                        numberIdentify: '',
+                        mail: '',
+                        fullnameRecever: '',
+                        phoneRecever: '',
+                        addressRecever: '',
+                        mailRecever: '');
+                    showIfCodeIsExist = false;
+                    show = false;
+                  });
+                  customers = customerService
+                      .findByIdentify(searchController.text);
+                  customers.then((customer) {
+                    setState(() {
+                      customerSearch = customer;
+                      customerInformationForWithdrawal = customer!;
+                      show = true;
+                      showIfCodeIsExist = true;
+                      // print(customerSearch);
+                    });
+                  });
+                });
+              },
+              icon: const Icon(Icons.qr_code_scanner)
+          )
+        ],
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -180,31 +275,6 @@ class _WithDrawalAgencyCustomeState extends State<WithDrawalAgencyCustome> {
                           }
                         }),
                   ),
-                  /* FutureBuilder(
-                          future: customers,
-                          builder: (context, snashop){
-                            if(snashop.connectionState == ConnectionState.waiting){
-                              return const CircularProgressIndicator(color: Colors.orange,);
-                            }else if(snashop.hasError){
-                              return Container(child: const Text("Une error s'est produite"),);
-                            }else if(snashop.hasData){
-                              setState(() {
-                                showIfCodeIsExist = true;
-                              });
-                              return Column(
-                                children: [
-                                  TextFormField(
-                                    readOnly: true,
-                                    initialValue: "${snashop.data?.fullname}",
-                                  ),
-                                ],
-                              );
-                            }
-                            else{
-                              return Container(child: const Text("Veuillez entrer un code correct"),);
-                            }
-                          }
-                      ),*/
                   showIfCodeIsExist
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

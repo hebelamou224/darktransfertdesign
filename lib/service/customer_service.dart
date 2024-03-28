@@ -8,4 +8,16 @@ class CustomerService{
   Future<Customer?> findByIdentify(String identifyCustomer) async{
     return await customerRepository.findByIdentify(identifyCustomer);
   }
+
+  Future<Customer?> findFirstByOrderByOperationDateModifyDesc() async{
+    return await customerRepository.findFirstByOrderByOperationDateModifyDesc();
+  }
+
+  Future<List<Customer>?> findAllByOrderByOperationDateModifyDesc() async{
+    return await customerRepository.findAllByOrderByOperationDateModifyDesc();
+  }
+
+  Future<List<Customer>?> findAllByFullnameContainingOrFullnameReceverContainingOrderByOperationDateModifyDesc(String fullname) async{
+    return await customerRepository.findAllByFullnameContainingOrFullnameReceverContainingOrderByOperationDateModifyDesc(fullname);
+  }
 }

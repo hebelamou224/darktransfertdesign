@@ -22,7 +22,6 @@ class EmployeeRepository{
 
     final response = await http.put(url, body: data);
     if(response.statusCode == 200){
-      print(response.body);
       return "succes";
     }
     return "error";
@@ -36,5 +35,44 @@ class EmployeeRepository{
     }
     return "not_exist";
   }
+  
+  Future<Employee?> updateInformation(Employee employee) async{
+    var data = <String, dynamic>{
+      "username": employee.username,
+      "fullname": employee.fullname,
+      "address": employee.address,
+      "telephone": employee.telephone,
+      "role": employee.role,
+      "password": employee.password
+    };
+    
+    Uri url = Uri.parse("http://${Constant.IP_ADDRESS}:8080/v1/api/transfert/employee/update");
+    final response = await http.put(url, body: data);
+    if(response.statusCode == 200){
+      final data = jsonDecode(response.body);
+      String password ;
+      if(data["password"] == null){
+        password = "";
+      }else{
+        password = data["password"];
+      }
+      Employee emp = Employee(
+          id: data["id"],
+          username: data["username"],
+          fullname: data["fullname"],
+          address: data["address"],
+          telephone: data["telephone"],
+          dateRegister: data["dateRegister"],
+          role: data["role"],
+          identifyAgency: data["identifyAgency"],
+          password: password
+      );
+      return emp;
+    }
+    return null;
+    
+  }
+  
+  
 
 }

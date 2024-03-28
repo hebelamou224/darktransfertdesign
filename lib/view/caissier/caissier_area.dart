@@ -1,13 +1,21 @@
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:darktransfert/model/agency.dart';
 import 'package:darktransfert/service/agency_service.dart';
+import 'package:darktransfert/service/customer_service.dart';
 import 'package:darktransfert/user_connect_info.dart';
 import 'package:darktransfert/view/agency/persone.dart';
+import 'package:darktransfert/view/caissier/pages/action.dart';
 import 'package:darktransfert/view/caissier/pages/deposit.dart';
+import 'package:darktransfert/view/caissier/pages/liste_of_transactions.dart';
+import 'package:darktransfert/view/caissier/pages/search_transaction.dart';
 import 'package:darktransfert/view/caissier/pages/withdrawal.dart';
 import 'package:darktransfert/view/components/drawer_menu_agency.dart';
 import 'package:flutter/material.dart';
 import 'package:page_animation_transition/animations/right_to_left_faded_transition.dart';
 import 'package:page_animation_transition/page_animation_transition.dart';
+
+import '../../model/customer.dart';
+import '../login.dart';
 
 
 class CaissierArea extends StatefulWidget {
@@ -19,14 +27,25 @@ class CaissierArea extends StatefulWidget {
 
 class _CaissierAreaState extends State<CaissierArea> {
   AgencyService agencyService = AgencyService();
+  CustomerService customerService = CustomerService();
 
   bool showAccountSolde = true;
   late Future<Agency?> agencyFuture;
+  late Future<Customer?> lastOperation;
+  TextEditingController searchController = TextEditingController();
+  FocusNode searchFocus = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency!);
+    agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency);
+    lastOperation = customerService.findFirstByOrderByOperationDateModifyDesc();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    searchController.dispose();
   }
 
   @override
@@ -40,36 +59,31 @@ class _CaissierAreaState extends State<CaissierArea> {
         ),
         actions: [
           IconButton(
-              onPressed: () {
-                showDialog(
-                    context: context,
-                    builder: (builder) => AlertDialog(
-                          title: const Text("Deconnexion"),
-                          content: const Text("Voullez vous deconnectez ?"),
-                          actions: [
-                            TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text(
-                                  "NON",
-                                  style: TextStyle(color: Colors.red),
-                                )),
-                            TextButton(
-                                onPressed: () {
-                                  Navigator.popAndPushNamed(context, "/login");
-                                },
-                                child: const Text("OUI"))
-                          ],
-                        ));
-
-                //Navigator.popAndPushNamed(context, "/login");
+              onPressed: () async{
+                if(await confirm(
+                    context,
+                  title: const Text("Deconnexion"),
+                  content: const Text("Voullez vous deconnectez ?"),
+                  textOK: const Text("OUI"),
+                  textCancel: const Text("NON")
+                )){
+                  Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => const LoginPage())
+                  );
+                }
               },
               icon: const Icon(Icons.logout))
         ],
       ),
       drawer: const NavigationDrawerAgency(),
-      body: mainHomeRegistreCustomer(),
+      body: RefreshIndicator(
+          onRefresh: () {
+            return Future((){
+              lastOperation = customerService.findFirstByOrderByOperationDateModifyDesc();
+            });
+          },
+          child: mainHomeRegistreCustomer()
+        ),
     );
   }
 
@@ -90,6 +104,58 @@ class _CaissierAreaState extends State<CaissierArea> {
               ),
               separetedSize(),
               buttonRowOne(),
+              Container(
+                margin: const EdgeInsets.only(top: 30),
+                child: TextFormField(
+                  onEditingComplete: (){
+                    searchFocus.unfocus();
+                    Navigator.of(context).push(
+                        PageAnimationTransition(
+                            page:  SearchTransaction(initialValue: searchController.text,),
+                            pageAnimationType: RightToLeftFadedTransition()
+                        )
+                    );
+                    searchController.text = "";
+                  },
+                  focusNode: searchFocus,
+                  autofocus: false,
+                  controller: searchController,
+                  decoration: InputDecoration(
+                    hintText: "Recherche par nom ou code transaction",
+                    prefixIcon: IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: (){
+                        searchFocus.unfocus();
+                        Navigator.of(context).push(
+                            PageAnimationTransition(
+                                page:  const SearchTransaction(),
+                                pageAnimationType: RightToLeftFadedTransition()
+                            )
+                        );
+                        searchController.text = "";
+                      },
+                    ),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: (){
+                        searchFocus.unfocus();
+                        Navigator.of(context).push(
+                            PageAnimationTransition(
+                                page:   SearchTransaction(initialValue: searchController.text,),
+                                pageAnimationType: RightToLeftFadedTransition()
+                            )
+                        );
+                        searchController.text = "";
+                      },
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: const BorderSide(color: Colors.orange, width: 3)
+                    ),
+                    border: const OutlineInputBorder()
+                  ),
+                ),
+              )
             ],
           ),
         ),
@@ -136,7 +202,7 @@ class _CaissierAreaState extends State<CaissierArea> {
               showAccountSolde ? TextButton(
                   onPressed: () {
                     setState(() {
-                      agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency!);
+                      agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency);
                       showAccountSolde = false;
                     });
                   },
@@ -155,7 +221,7 @@ class _CaissierAreaState extends State<CaissierArea> {
                   TextButton(
                       onPressed: () {
                         setState(() {
-                          agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency!);
+                          agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency);
                           showAccountSolde = true;
                         });
                       },
@@ -206,69 +272,82 @@ class _CaissierAreaState extends State<CaissierArea> {
           const SizedBox(
             height: 10,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Column(
+          FutureBuilder(
+              future: lastOperation,
+              builder: (context, snashop){
+                if(snashop.connectionState == ConnectionState.waiting){
+                  return const Center(child:  CircularProgressIndicator(color: Colors.orange,),);
+                }else if(snashop.hasError){
+                  return const Center(child: Text("Error de chargement de donné", style: TextStyle(color: Colors.red),));
+                }else{
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(100),
-                            color: Colors.orange),
-                        child: const Center(
-                          child: Text(
-                            "AG",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
+                      Row(
+                        children: [
+                          Column(
+                            children: [
+                              Container(
+                                height: 40,
+                                width: 40,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(100),
+                                    color: snashop.data!.status! ? Colors.orange : Colors.green
+                                ),
+                                child:  Center(
+                                  child: Text(
+                                    snashop.data!.status! ? "R" : "D",
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                           Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                snashop.data!.status! ? "${snashop.data?.fullnameRecever}" : "${snashop.data?.fullname}",
+                                style: const TextStyle(fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              Text(
+                                snashop.data!.status! ? "Retrait": "Depot",
+                                style: const TextStyle(fontSize: 10),
+                              )
+                            ],
+                          )
+                        ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Agance Moriba",
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      SizedBox(
-                        height: 5,
-                      ),
-                      Text(
-                        "Depot",
-                        style: TextStyle(fontSize: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            "${snashop.data?.amount} GNF",
+                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Text(
+                            "${snashop.data?.dateModify}",
+                            style: const TextStyle(fontSize: 8),
+                          )
+                        ],
                       )
                     ],
-                  )
-                ],
-              ),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    "555555.558 FGN",
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Text(
-                    "18h 30m",
-                    style: TextStyle(fontSize: 9),
-                  )
-                ],
-              )
-            ],
-          )
+                  );
+                }
+              }
+          ),
+
         ],
       ),
     );
@@ -298,7 +377,6 @@ class _CaissierAreaState extends State<CaissierArea> {
             ),
           ),
           onTap: () {
-            //Navigator.of(context).push(MaterialPageRoute(builder: (builder)=> const DepositAgencyCustome()));
             Navigator.of(context).push(PageAnimationTransition(
                 page: const DepositAgencyCustome(),
                 pageAnimationType: RightToLeftFadedTransition()
@@ -333,7 +411,7 @@ class _CaissierAreaState extends State<CaissierArea> {
             Navigator.of(context).push(PageAnimationTransition(
                 page: const WithDrawalAgencyCustome(),
                 pageAnimationType: RightToLeftFadedTransition()
-            )
+              )
             );
           },
         )),
@@ -352,16 +430,26 @@ class _CaissierAreaState extends State<CaissierArea> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Icon(
-                  Icons.person_add,
+                  Icons.local_activity,
                   size: 40,
                   color: Colors.orange,
                 ),
-                Text("Client", style: TextStyle(fontSize: 11))
+                Text("Aujourd'hui", style: TextStyle(fontSize: 11))
               ],
             ),
           ),
           onTap: () {
-            Navigator.pushNamed(context, "/create_customer");
+
+            String date = "";
+            DateTime.now().month < 10 ?
+                date = "${DateTime.now().year}-0${DateTime.now().month}-${DateTime.now().day}" :
+                date = "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}";
+            Navigator.of(context).push(
+                PageAnimationTransition(
+                    page: ActionEmployee(date: date, allAction: false, title: "Ajourd'hui"),
+                    pageAnimationType: RightToLeftFadedTransition()
+                )
+            );
           },
         )),
         const SizedBox(
@@ -391,8 +479,12 @@ class _CaissierAreaState extends State<CaissierArea> {
             ),
           ),
           onTap: () {
-            Navigator.pushNamed(context, "/listOfTransaction");
-            //Navigator.popNamed(context, "/listOfTransaction");
+            Navigator.of(context).push(
+                PageAnimationTransition(
+                  page: const ListOfTransaction(),
+                  pageAnimationType: RightToLeftFadedTransition()
+                )
+            );
           },
         )),
       ],

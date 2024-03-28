@@ -23,6 +23,9 @@ dependencies:
   local_auth: ^2.2.0
   confirm_dialog: ^1.0.3
   page_animation_transition: ^1.0.0
+  flutter_barcode_scanner: ^2.0.0
+  calendar_date_picker2: ^0.5.5
+
 
   #money_input_formatter: ^2.0.0
 
