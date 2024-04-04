@@ -2,9 +2,7 @@ import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:darktransfert/model/employee.dart';
 import 'package:darktransfert/service/employee_service.dart';
 import 'package:darktransfert/user_connect_info.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 
 class UserPage extends StatefulWidget {
@@ -135,7 +133,10 @@ class _UserPageState extends State<UserPage> {
                           border: OutlineInputBorder(
                               borderSide: const BorderSide(color: Colors.orange),
                               borderRadius: BorderRadius.circular(10)
-                          )
+                          ),
+                        enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.withOpacity(0.6))
+                        ),
                       ),
                     )
                 ),
@@ -152,6 +153,9 @@ class _UserPageState extends State<UserPage> {
                           labelText: "Nom complet",
                           hintText: "Veuillez entre votre nom complet",
                           prefixIcon: const Icon(Icons.person_pin),
+                        enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.withOpacity(0.6))
+                        ),
                           suffixIcon: IconButton(
                             onPressed: (){
                               setState(() {
@@ -216,6 +220,9 @@ class _UserPageState extends State<UserPage> {
                             icon: !istEditAddress ? const Icon(Icons.edit, size: 15, color: Colors.orange,):
                             const Icon(Icons.close, size: 15, color: Colors.red,),
                           ),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey.withOpacity(0.6))
+                          ),
                           focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.orange)
                           ),
@@ -265,6 +272,9 @@ class _UserPageState extends State<UserPage> {
                             icon: !isEditPhone ? const Icon(Icons.edit, size: 15, color: Colors.orange,):
                             const Icon(Icons.close, size: 15, color: Colors.red,),
                           ),
+                        enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.withOpacity(0.6))
+                        ),
                           focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.orange)
                           ),
@@ -318,6 +328,9 @@ class _UserPageState extends State<UserPage> {
                           icon: !isEditPassword ? const Icon(Icons.edit, size: 15, color: Colors.orange,):
                           const Icon(Icons.close, size: 15, color: Colors.red,),
                         ),
+                        enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.withOpacity(0.6))
+                        ),
                         focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.orange)
                         ),
@@ -369,6 +382,9 @@ class _UserPageState extends State<UserPage> {
                             });
                           },
                         ),
+                        enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.withOpacity(0.6))
+                        ),
                         focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.orange)
                         ),
@@ -399,6 +415,9 @@ class _UserPageState extends State<UserPage> {
                           prefixIcon: const Icon(Icons.sensor_occupied),
                           focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.orange)
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey.withOpacity(0.6))
                           ),
                           border: OutlineInputBorder(
                               borderSide: const BorderSide(color: Colors.orange),
@@ -478,8 +497,6 @@ class _UserPageState extends State<UserPage> {
                                   addressController.text = employee.address;
                                   phoneController.text = employee.telephone;
 
-                                  //Redirect home page person
-                                  //Navigator.pop(context);
                                 });
                               }
                             }else{

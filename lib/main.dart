@@ -3,7 +3,7 @@ import 'package:darktransfert/repository/user_repository.dart';
 import 'package:darktransfert/view/caissier/pages/create_custormer.dart';
 import 'package:darktransfert/view/caissier/pages/liste_of_transactions.dart';
 import 'package:darktransfert/view/caissier/caissier_area.dart';
-import 'package:darktransfert/view/comptable/page/create_comptable.dart';
+import 'package:darktransfert/view/comptable/area_comptable.dart';
 import 'package:darktransfert/view/login.dart';
 import 'package:flutter/material.dart';
 
@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
       title: 'Dark Transfert',
       theme: ThemeData(
         fontFamily: "Montserrat",
-        appBarTheme: const AppBarTheme(backgroundColor: Colors.orange)),
+        appBarTheme:  AppBarTheme(backgroundColor: Colors.orange.withOpacity(0.5))),
       home: const LoginPage(),
     );
   }

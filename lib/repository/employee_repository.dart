@@ -49,7 +49,7 @@ class EmployeeRepository{
     Uri url = Uri.parse("http://${Constant.IP_ADDRESS}:8080/v1/api/transfert/employee/update");
     final response = await http.put(url, body: data);
     if(response.statusCode == 200){
-      final data = jsonDecode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
       String password ;
       if(data["password"] == null){
         password = "";

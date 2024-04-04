@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:calendar_date_picker2/calendar_date_picker2.dart';
-
 import '../../../model/action.dart';
 import '../../../service/action_service.dart';
 import '../../../user_connect_info.dart';
@@ -19,7 +17,6 @@ class _ActionEmployeeState extends State<ActionEmployee> {
 
   ActionService actionService = ActionService();
   late Future<List<ActionsConnected>?> actionsToDay ;
-  late List<DateTime?> _dates ;
 
   Future<void> reloadData() async{
     setState(() {
@@ -61,10 +58,11 @@ class _ActionEmployeeState extends State<ActionEmployee> {
 
               if(date != null){
 
-                String dateSelected = "";
-                date.month < 10 ?
-                dateSelected = "${date.year}-0${date.month}-${date.day}" :
-                dateSelected = "${date.year}-${date.month}-${date.day}";
+                String day = date.day < 10 ? "0${date.day}" : "${date.day}";
+                String month = date.month < 10 ? "0${date.month}" : "${date.month}";
+                int year = date.year;
+
+                String dateSelected = "$year-$month-$day";
 
                 setState(() {
                   actionsToDay = actionService.findActionByEmployeeId(UserConnected.id, dateSelected, widget.allAction);
@@ -99,8 +97,8 @@ class _ActionEmployeeState extends State<ActionEmployee> {
               );
             }else if(snapshot.hasError){
               return const Center(child: Text("Error de chargements", style: TextStyle(color: Colors.red),),);
-            }else if(!snapshot.hasData){
-              return const Center(child: Text("Aucun element", style: TextStyle(color: Colors.red),),);
+            }else if(snapshot.data!.isEmpty){
+              return const Center(child: Text("Aucune action effectué ajourd'hui", style: TextStyle(color: Colors.red),),);
             }else{
               return ListView.builder(
                 itemCount: snapshot.data!.length,

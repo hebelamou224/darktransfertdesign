@@ -1,4 +1,4 @@
-class Agency {
+class AgencyModel {
   int id;
   String identify;
   String name;
@@ -6,7 +6,7 @@ class Agency {
   String lieu;
   double account;
 
-  Agency({
+  AgencyModel({
     required this.id,
     required this.identify,
     required this.name,
@@ -15,8 +15,8 @@ class Agency {
     required this.account
   });
 
-  factory Agency.fromJson(Map<String, dynamic> json){
-    return Agency(
+  factory AgencyModel.fromJson(Map<String, dynamic> json){
+    return AgencyModel(
         id: json["id"] as int,
         identify: json["identify"] as String,
         name: json["name"] as String,

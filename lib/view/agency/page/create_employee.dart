@@ -32,7 +32,7 @@ class _CreateEmployeeState extends State<CreateEmployee> {
   bool isSelectedPartner = true;
   bool showIconUsernameEmployeeExist = false;
 
-  late Future<List<Agency>> agencies;
+  late Future<List<AgencyModel>> agencies;
   late Future<List<Partner>> partners;
 
   PartnerService partnerService = PartnerService();

@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:darktransfert/model/agency.dart';
 import 'package:darktransfert/model/partner.dart';
 import 'package:darktransfert/service/agency_service.dart';
 import 'package:darktransfert/service/partner_services.dart';
 import 'package:flutter/material.dart';
+import 'package:kdialogs/kdialogs.dart';
 
 class CreateAgency extends StatefulWidget {
   const CreateAgency({super.key});
@@ -31,10 +33,16 @@ class _CreateAgencyState extends State<CreateAgency> {
   PartnerService partnerService = PartnerService();
   AgencyService agencyService = AgencyService();
 
+  FocusNode focusNodeName = FocusNode();
+  FocusNode focusNodeDescription = FocusNode();
+  FocusNode focusNodeLieu = FocusNode();
+  FocusNode focusNodeAmount = FocusNode();
+
   @override
   void initState() {
     super.initState();
     partners = partnerService.findAllPartner();
+    accountAgencyController.text = "00";
   }
 
   @override
@@ -45,6 +53,11 @@ class _CreateAgencyState extends State<CreateAgency> {
     accountAgencyController.dispose();
     lieuAgencyController.dispose();
     addressController.dispose();
+
+    focusNodeName.dispose();
+    focusNodeDescription.dispose();
+    focusNodeLieu.dispose();
+    focusNodeAmount.dispose();
   }
 
   @override
@@ -92,9 +105,10 @@ class _CreateAgencyState extends State<CreateAgency> {
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
-                                return const CircularProgressIndicator();
+                                return const CircularProgressIndicator(color: Colors.orange,);
                               } else if (snapshot.hasError) {
                                 return Container(
+                                  margin: const EdgeInsets.all(10),
                                   child: const Text("Error de chargement"),
                                 );
                               } else {
@@ -113,7 +127,9 @@ class _CreateAgencyState extends State<CreateAgency> {
                                             color: Colors.orange, width: 2)),
                                   ),
                                   onChanged: (value) {
-                                    partnerUsername = value;
+                                    setState(() {
+                                      partnerUsername = value;
+                                    });
                                   },
                                   items: snapshot.data
                                       ?.map<DropdownMenuItem>((partner) {
@@ -139,6 +155,10 @@ class _CreateAgencyState extends State<CreateAgency> {
                               labelText: "Nom agence*",
                               hintText: "Enter le nom de l'agence"),
                           controller: agenceNameController,
+                          focusNode: focusNodeName,
+                          onEditingComplete: (){
+                            focusNodeDescription.nextFocus();
+                          },
                           validator: (value) => (value == null || value == "")
                               ? "Veuillez entrer le nom de l'agence"
                               : null,
@@ -162,13 +182,21 @@ class _CreateAgencyState extends State<CreateAgency> {
                               labelText: "Description",
                               hintText: "Description de l'agence"),
                           controller: descriptionAgencyController,
+                          focusNode: focusNodeDescription,
+                          onEditingComplete: (){
+                            focusNodeLieu.nextFocus();
+                          },
                         ),
                       ),
                       Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         child: TextFormField(
+                          focusNode: focusNodeLieu,
+                          onEditingComplete: (){
+                            focusNodeAmount.nextFocus();
+                          },
                           decoration: const InputDecoration(
-                              prefixIcon: Icon(Icons.location_city),
+                              prefixIcon: Icon(Icons.location_on_outlined),
                               border: OutlineInputBorder(),
                               focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
@@ -186,7 +214,7 @@ class _CreateAgencyState extends State<CreateAgency> {
                         child: TextFormField(
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
-                              prefixIcon: Icon(Icons.euro),
+                              prefixIcon: TextButton(onPressed: null, child: Text("GNF")),
                               border: OutlineInputBorder(),
                               focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
@@ -194,11 +222,18 @@ class _CreateAgencyState extends State<CreateAgency> {
                               labelText: "Montant / Solde",
                               hintText: "Enter le montant initial de l'agence"),
                           controller: accountAgencyController,
+                          focusNode: focusNodeAmount,
+                          validator: (value){
+                            if(value == ""){
+                              accountAgencyController.text = "00";
+                              return null;
+                            }else{
+                              return null;
+                            }
+                          },
                         ),
                       ),
-                      isLoading
-                          ? const CircularProgressIndicator()
-                          : submit(formKey),
+                      submit(formKey),
                     ],
                   ))
             ],
@@ -215,11 +250,12 @@ class _CreateAgencyState extends State<CreateAgency> {
       child: ElevatedButton(
         onPressed: () async {
           if (formKey.currentState!.validate()) {
-            setState(() {
-              isLoading = true;
-            });
 
-            Agency agency = Agency(
+            focusNodeAmount.unfocus();
+            focusNodeLieu.unfocus();
+            focusNodeDescription.unfocus();
+            focusNodeName.unfocus();
+            AgencyModel agency = AgencyModel(
                 id: 0,
                 identify: DateTime.now()
                     .toString()
@@ -232,128 +268,77 @@ class _CreateAgencyState extends State<CreateAgency> {
 
             //Confirmation de l'enregistrement
 
-            showDialog(
-                context: context,
-                builder: (build) {
-                  return AlertDialog(
-                    title: const Row(
-                      children: [
-                        Icon(Icons.info, color: Colors.green,),
-                        SizedBox(width: 8,),
-                        Text("Enregistrement"),
-                      ],
-                    ),
-                    content: const Text(
-                        "Confirmez-vous l'enregistrement des informations saisie"),
-
-                    actions: [
-                      //Enregistrement refuser
-                      TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text(
-                            "Annuler",
+            if(await confirm(
+                context,
+              title: const Row(
+                children: [
+                  Icon(Icons.info, color: Colors.green,),
+                  SizedBox(width: 8,),
+                  Text("Confirmation"),
+                ],
+              ),
+              content: const Text(
+                  "Confirmez-vous l'enregistrement des informations saisie"
+              ),
+              textOK: const Text("Confirmer",
+                style: TextStyle(color: Colors.green),
+              ),
+              textCancel: const Text("Anuller",
+                style: TextStyle(color: Colors.red),
+              )
+            )){
+              final close = await showKDialogWithLoadingMessage(context, message: "Veuillez patienter" );
+              await agencyService.addAgencyForPartner(
+                  agency, partnerUsername).then((value) async{
+                    if(value == "succes"){
+                      close();
+                      if(await confirm(
+                          context,
+                          title: const Row(
+                            children: [
+                              Icon(Icons.info, color: Colors.green,),
+                              SizedBox(width: 8,),
+                              Text("Information"),
+                            ],
+                          ),
+                          content: const Text(
+                              "Enregistrement effectue avec succes"
+                          ),
+                          textOK: const Text("OK",
+                            style: TextStyle(color: Colors.green),
+                          ),
+                          textCancel: const Text("Fermer",
                             style: TextStyle(color: Colors.red),
-                          )),
+                          )
 
-                      TextButton(
-                          onPressed: () async{
-                            //===============================
-                            //Enregistrement accepter
-
-                            Navigator.of(context).pop();
-
-                            String response = await agencyService.addAgencyForPartner(
-                                agency, partnerUsername);
-                            if (response == "succes") {
-                              showDialog(
-                                  context: context,
-                                  builder: (builder) => AlertDialog(
-                                    icon: const Icon(
-                                      Icons.check_circle,
-                                      color: Colors.green,
-                                      size: 50,
-                                    ),
-                                    scrollable: true,
-                                    title: Container(
-                                      width: double.infinity,
-                                      child: const Text("Enregistrement de l'agence"),
-                                    ),
-                                    content: Container(
-                                      height: 70,
-                                      padding: const EdgeInsets.all(10),
-                                      child: Column(
-                                        children: [
-                                          Row(
-                                            children: [
-                                              const Text("L'agence "),
-                                              Text(
-                                                " ${agenceNameController.text.toUpperCase()} ",
-                                                style: const TextStyle(
-                                                    fontWeight: FontWeight.bold),
-                                              ),
-                                            ],
-                                          ),
-                                          Text(
-                                              " à été creée pour le partenaire avec l'identifant: $partnerUsername")
-                                        ],
-                                      ),
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            agenceNameController.text = "";
-                                            descriptionAgencyController.text = "";
-                                            accountAgencyController.text = "";
-                                            lieuAgencyController.text = "";
-                                            addressController.text = "";
-                                          },
-                                          child: const Text("OK"))
-                                    ],
-                                  ));
-                            } else if (response == "error") {
-                              showDialog(
-                                  context: context,
-                                  builder: (builder) => AlertDialog(
-                                    icon: const Icon(
-                                      Icons.cancel,
-                                      color: Colors.red,
-                                      size: 50,
-                                    ),
-                                    title: Container(
-                                      child: const Text("Enregistrement de l'agence"),
-                                    ),
-                                    content: Container(
-                                      padding: const EdgeInsets.all(10),
-                                      child: const Text(
-                                          "Echec d'enregistrement de cette agence, veuillez recommercer l'enregistrement"),
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text(
-                                            "OK",
-                                            style: TextStyle(fontSize: 20),
-                                          ))
-                                    ],
-                                  ));
-                            }
-
-                            //===============================
-
-                          }, child: const Text("Confrimer")),
-
-                    ],
-                  );
-                });
-
-            setState(() {
-              isLoading = false;
-            });
+                      )) {
+                      }
+                      Navigator.pop(context);
+                    }
+              }, onError: (error){
+                    close();
+                    showDialog(
+                        context: context,
+                        builder: (builder){
+                          return const AlertDialog(
+                            title: Row(
+                              children: [
+                                Icon(Icons.error, color: Colors.red,),
+                                SizedBox(width: 8,),
+                                Text("Error"),
+                              ],
+                            ),
+                            content: Text("Error d'enrgistrement d'agence, veuillez reprendre"),
+                            actions: [
+                              Text("OK")
+                            ],
+                          );
+                        },
+                    );
+              });
+            }else{
+              return;
+            }
           }
         },
         style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),

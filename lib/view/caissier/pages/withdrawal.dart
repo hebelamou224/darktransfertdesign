@@ -28,7 +28,7 @@ class _WithDrawalAgencyCustomeState extends State<WithDrawalAgencyCustome> {
   AgencyService agencyService = AgencyService();
   late TextEditingController searchController = TextEditingController();
   late Future<Customer?> customers;
-  late Future<Agency?> agencyFuture;
+  late Future<AgencyModel?> agencyFuture;
 
   Customer customerInformationForWithdrawal = Customer(
       id: 0,
@@ -83,7 +83,7 @@ class _WithDrawalAgencyCustomeState extends State<WithDrawalAgencyCustome> {
     }
     customers = customerService.findByIdentify("");
     agencyFuture =
-        agencyService.findByIdentifyAgency(UserConnected.identifyAgency!);
+        agencyService.findByIdentifyAgency(UserConnected.identifyAgency);
 
   }
 
@@ -568,8 +568,8 @@ class _WithDrawalAgencyCustomeState extends State<WithDrawalAgencyCustome> {
                                                 final response = await agencyService.withdrawal(searchController.text);
                                                 if (response == "succes") {
                                                   //update account agency after withdrawal
-                                                  Future<Agency?>updateAccountAgency = agencyService.updateAccountAgencyAfterOperation(
-                                                      UserConnected.identifyAgency!,
+                                                  Future<AgencyModel?>updateAccountAgency = agencyService.updateAccountAgencyAfterOperation(
+                                                      UserConnected.identifyAgency,
                                                       customerInformationForWithdrawal.amount!,
                                                       "WITHDRAWAL"
                                                   );

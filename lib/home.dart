@@ -1,13 +1,29 @@
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:darktransfert/model/partner.dart';
+import 'package:darktransfert/service/action_service.dart';
+import 'package:darktransfert/service/agency_service.dart';
+import 'package:darktransfert/service/customer_service.dart';
 import 'package:darktransfert/service/partner_services.dart';
+import 'package:darktransfert/user_connect_info.dart';
+import 'package:darktransfert/view/admin/detail_partner.dart';
 import 'package:darktransfert/view/agency/page/create_employee.dart';
 import 'package:darktransfert/view/agency/page/deposit_account_agency.dart';
 import 'package:darktransfert/view/agency/persone.dart';
+import 'package:darktransfert/view/caissier/pages/action.dart';
 import 'package:darktransfert/view/components/drawer_menu.dart';
 import 'package:darktransfert/view/agency/page/create_agency.dart';
+import 'package:darktransfert/view/comptable/page/rechargement.dart';
+import 'package:darktransfert/view/list_partners.dart';
+import 'package:darktransfert/view/login.dart';
 import 'package:darktransfert/view/partner/page/create_partner.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:page_animation_transition/animations/right_to_left_faded_transition.dart';
+import 'package:page_animation_transition/page_animation_transition.dart';
+
+import 'model/action.dart';
+import 'model/agency.dart';
+import 'model/customer.dart';
+import 'model/partners_get.dart';
 
 class HomeMain extends StatefulWidget {
   const HomeMain({super.key});
@@ -19,12 +35,23 @@ class HomeMain extends StatefulWidget {
 class _HomeState extends State<HomeMain> {
 
   PartnerService partnerService = PartnerService();
-  late Future<List<Partner>> partners;
+  AgencyService agencyService = AgencyService();
+  CustomerService customerService = CustomerService();
+  ActionService actionService = ActionService();
+  late Future<List<PartnerModel>> partners;
+  late Future<AgencyModel?> agencyFuture;
+  late Future<List<ActionsConnected>?> lastActionToday ;
+
+  bool showAccountSolde = false;
 
   @override
   void initState() {
     super.initState();
-    partners = partnerService.findAllPartner();
+    partners = partnerService.findAllPartners();
+    //Get information for the agency when open the app
+    agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency);
+    //Get last action
+    lastActionToday = actionService.findActionByEmployeeId(UserConnected.id, "", true);
   }
 
   @override
@@ -38,32 +65,33 @@ class _HomeState extends State<HomeMain> {
         ),
         actions: [
           IconButton(
-              onPressed: () {
-                showDialog(
-                    context: context,
-                    builder: (builder) => AlertDialog(
-                          title: const Text("Deconnexion"),
-                          content: const Text("Voullez vous deconnectez ?"),
-                          actions: [
-                            TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text(
-                                  "NON",
-                                  style: TextStyle(color: Colors.red),
-                                )),
-                            TextButton(
-                                onPressed: () {
-                                  Navigator.popAndPushNamed(context, "/login");
-                                },
-                                child: const Text("OUI"))
-                          ],
-                        ));
-
-                //Navigator.popAndPushNamed(context, "/login");
+              onPressed: (){
+                setState(() {
+                  partners = partnerService.findAllPartners();
+                  //Get information for the agency when open the app
+                  agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency);
+                  //Get last action
+                  lastActionToday = actionService.findActionByEmployeeId(UserConnected.id, "", true);
+                });
               },
-              icon: const Icon(Icons.logout))
+              icon: const Icon(Icons.refresh)
+          ),
+          IconButton(
+              onPressed: ()async{
+                if(await confirm(
+                    context,
+                    title: const Text("Deconnexion"),
+                    content: const  Text("Voullez-vous vous deconnectez ?"),
+                    textOK: const Text("OUI"),
+                    textCancel: const Text("NON")
+                )){
+                  Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => const LoginPage())
+                  );
+                }
+              },
+              icon: const Icon(Icons.logout)
+          )
         ],
       ),
       drawer: const NavigationDrawers(),
@@ -93,10 +121,6 @@ class _HomeState extends State<HomeMain> {
               separetedSize(),
               rowOfPage(),
               separetedSize(),
-              myPatner(),
-              separetedSize(),
-              rowOfPage(),
-              separetedSize(),
               listPartners(),
             ],
           ),
@@ -105,107 +129,6 @@ class _HomeState extends State<HomeMain> {
     );
   }
 
-  SingleChildScrollView myPatner() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                height: 70,
-                width: 70,
-                child: const CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRx0CIy3mIbpe2nuLRfK5xxPcwxmTvXjJsBNw&usqp=CAU")),
-              ),
-              const Text(
-                "Moriba",
-                style: TextStyle(fontWeight: FontWeight.w500),
-              )
-            ],
-          ),
-          const SizedBox(
-            width: 15,
-          ),
-          Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                height: 70,
-                width: 70,
-                child: const CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGeg0a5wyDchHuY6tgbDkWKNLYiS7vHn4w4g&usqp=CAU")),
-              ),
-              const Text(
-                "Antoine",
-                style: TextStyle(fontWeight: FontWeight.w500),
-              )
-            ],
-          ),
-          const SizedBox(
-            width: 15,
-          ),
-          Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                height: 70,
-                width: 70,
-                child: const CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZd8IFhFAzVB_AdUsDwZMmRzafOAhzsQ_JlQ&usqp=CAU")),
-              ),
-              const Text(
-                "Foromo",
-                style: TextStyle(fontWeight: FontWeight.w500),
-              )
-            ],
-          ),
-          const SizedBox(
-            width: 15,
-          ),
-          Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                height: 70,
-                width: 70,
-                child: const CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbIhi9l4npCGPNWMAc6szDbxp75kjB3c0R5w&usqp=CAU")),
-              ),
-              const Text(
-                "Fatoumata",
-                style: TextStyle(fontWeight: FontWeight.w500),
-              )
-            ],
-          ),
-          const SizedBox(
-            width: 15,
-          ),
-          Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                height: 70,
-                width: 70,
-                child: const CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRA1af5Ah2OAIP2yd5c6dRKv86-oWMrz4Kd8A&usqp=CAU")),
-              ),
-              const Text(
-                "Bernard",
-                style: TextStyle(fontWeight: FontWeight.w500),
-              )
-            ],
-          )
-        ],
-      ),
-    );
-  }
 
   FutureBuilder listPartners() {
     return FutureBuilder(
@@ -233,35 +156,39 @@ class _HomeState extends State<HomeMain> {
                 }else{
                   firstLetterLastname = firstname.substring(0,1).toUpperCase();
                 }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      InkWell(
-                        onTap: (){
-
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.only(left: 20),
-                          height: 70,
-                          width: 70,
-                          child:  CircleAvatar(
-                            backgroundColor: Colors.orange,
-                            child: Center(child:  Text('$firstLetterFirstname$firstLetterLastname',
-                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Colors.white),),
+                return Row(
+                  children: [
+                    Column(
+                        children: [
+                          InkWell(
+                            onTap: (){
+                              Navigator.of(context).push(
+                                  PageAnimationTransition(
+                                      page:  DetailsPartners(partner: partner),
+                                      pageAnimationType: RightToLeftFadedTransition()
+                                  )
+                              );
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              height: 70,
+                              width: 70,
+                              child:  CircleAvatar(
+                                backgroundColor: Colors.orange,
+                                child: Center(child:  Text('$firstLetterFirstname$firstLetterLastname',
+                                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Colors.white),),
+                                ),
+                              ),
                             ),
-                             /* backgroundImage: NetworkImage(
-                                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRA1af5Ah2OAIP2yd5c6dRKv86-oWMrz4Kd8A&usqp=CAU")*/),
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.all(10),
-                        child: Text(
-                          firstname,
-                            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
-                        ),
-                      )
-                    ]
+                          ),
+                          Text(
+                            firstname,
+                              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
+                          ),
+                        ]
+                    ),
+                    const SizedBox(width: 15,),
+                  ],
                 );
               }).toList(),)
             ),
@@ -279,15 +206,26 @@ class _HomeState extends State<HomeMain> {
   }
 
   Row rowOfPage() {
-    return const Row(
+    return  Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text("Nos Partnaires", style: TextStyle(fontWeight: FontWeight.w700)),
-        Text(
-          "VOIR PLUS",
-          style: TextStyle(
-              color: Colors.orange, fontSize: 10, fontWeight: FontWeight.bold),
-        ),
+        const Text("Mes Partnaires", style: TextStyle(fontWeight: FontWeight.w700)),
+        TextButton(
+            onPressed: (){
+              Navigator.of(context).push(
+                  PageAnimationTransition(
+                      page:  const ListPartners(),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
+              );
+            },
+            child: const Text(
+              "VOIR PLUS",
+              style: TextStyle(
+                  color: Colors.orange, fontSize: 10, fontWeight: FontWeight.bold),
+            ),
+        )
+
       ],
     );
   }
@@ -297,23 +235,83 @@ class _HomeState extends State<HomeMain> {
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.only(bottom: 15),
       width: double.infinity,
-      height: 240,
+      height: 270,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5), color: Colors.white),
       child: Column(
         children: [
+          FutureBuilder(
+              future: agencyFuture,
+              builder: (context, snasop){
+                if(snasop.connectionState == ConnectionState.waiting){
+                  return const CircularProgressIndicator(color: Colors.orange,);
+                }else if(snasop.hasError){
+                  return const Center(child: Text("Error de chargement", style: TextStyle(color: Colors.red),),);
+                }else if(!snasop.hasData){
+                  return const Center(child: Text("Aucune information disponible", style: TextStyle(color: Colors.red),),);
+                }else{
+                  return Text(
+                    "${snasop.data?.name.toUpperCase()}",
+                    style: const  TextStyle(
+                        color: Colors.black54, fontWeight: FontWeight.w500, fontSize: 20
+                    ),
+                  );
+                }
+              }
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              showAccountSolde ? TextButton(
+                  onPressed: () {
+                    setState(() {
+                      agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency);
+                      showAccountSolde = false;
+                    });
+                  },
+                  child: const Row(
+                    children: [
+                      Icon(Icons.visibility, color: Colors.orange,),
+                      SizedBox(width: 10,),
+                      Text(
+                        "AFFICHER LE SOLDE",
+                        style: TextStyle(
+                            color: Colors.orange, fontWeight: FontWeight.w500),
+                      )
+                    ],
+                  )
+              ):
               TextButton(
                   onPressed: () {
-                    setState(() {});
+                    setState(() {
+                      agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency);
+                      showAccountSolde = true;
+                    });
                   },
-                  child: const Text(
-                    "500255.6655 FGN",
-                    style: TextStyle(
-                        color: Colors.orange, fontWeight: FontWeight.bold),
-                  ))
+                  child:  Row(
+                    children: [
+                      const Icon(Icons.visibility_off, color: Colors.orange,),
+                      const SizedBox(width: 10,),
+                      FutureBuilder(
+                          future: agencyFuture,
+                          builder: (context, snasop){
+                            if(snasop.connectionState == ConnectionState.waiting){
+                              return const CircularProgressIndicator(color: Colors.orange,);
+                            }else if(snasop.hasError){
+                              return const Center(child: Text("Error de chargement"),);
+                            }else{
+                              return Text(
+                                "${snasop.data?.account} GNF",
+                                style: const  TextStyle(
+                                    color: Colors.orange, fontWeight: FontWeight.w500, fontSize: 18
+                                ),
+                              );
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              )
             ],
           ),
           const SizedBox(
@@ -324,7 +322,19 @@ class _HomeState extends State<HomeMain> {
             children: [
               const Text("Dernier transaction"),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  //Navigator.pushNamed(context, "/listOfTransaction");
+                  String date = "";
+                  DateTime.now().month < 10 ?
+                  date = "${DateTime.now().year}-0${DateTime.now().month}-${DateTime.now().day}" :
+                  date = "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}";
+                  Navigator.of(context).push(
+                      PageAnimationTransition(
+                          page: ActionEmployee(date: date, allAction: true, title: "Ajourd'hui"),
+                          pageAnimationType: RightToLeftFadedTransition()
+                      )
+                  );
+                },
                 child: const Text(
                   "VOIR PLUS",
                   style: TextStyle(color: Colors.orange, fontSize: 10),
@@ -335,63 +345,90 @@ class _HomeState extends State<HomeMain> {
           const SizedBox(
             height: 10,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Column(
+          FutureBuilder(
+              future: lastActionToday,
+              builder: (context, snashop){
+                if(snashop.connectionState == ConnectionState.waiting){
+                  return const Center(child:  CircularProgressIndicator(color: Colors.orange,),);
+                }else if(snashop.hasError){
+                  return const Center(child: Text("Error de chargement de donné", style: TextStyle(color: Colors.red),));
+                }else if(snashop.data!.isEmpty){
+                  return const Center(child: Text("Aucune action n'est disponible", style: TextStyle(color: Colors.red),));
+                }else{
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(100),
-                            color: Colors.orange),
-                        child: const Center(
-                          child: Text(
-                            "AG",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
+                      Row(
+                        children: [
+                          Column(
+                            children: [
+                              Container(
+                                height: 40,
+                                width: 40,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(100),
+                                    color: Colors.orange
+                                ),
+                                child: const  Center(
+                                  child: Text(
+                                    "T",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "${snashop.data?.first.typeAction}",
+                                style: const TextStyle(fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(1),
+                                width: 220,
+                                child: Text(
+                                  softWrap: true,
+                                  overflow: TextOverflow.fade,
+                                  "${snashop.data?.first.description}",
+                                  style: const TextStyle(fontSize: 10),
+                                ),
+                              )
+                            ],
+                          )
+                        ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Agance Moriba",
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        "Depot",
-                        style: TextStyle(fontSize: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const Text(
+                            "DATE",
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Text(
+                            "${snashop.data?.first.dateAction}",
+                            style: const TextStyle(fontSize: 8),
+                          )
+                        ],
                       )
                     ],
-                  )
-                ],
-              ),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    "555555.558 FGN",
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    "18h 30m",
-                    style: TextStyle(fontSize: 9),
-                  )
-                ],
-              )
-            ],
-          )
+                  );
+                }
+              }
+          ),
+
         ],
       ),
     );
@@ -403,8 +440,12 @@ class _HomeState extends State<HomeMain> {
         Expanded(
             child: InkWell(
             onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (build) => const CreateAgency()));
+              Navigator.of(context).push(
+                  PageAnimationTransition(
+                      page:  const CreateAgency(),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
+              );
             },
           child: Container(
             height: 80,
@@ -431,8 +472,12 @@ class _HomeState extends State<HomeMain> {
         Expanded(
             child: InkWell(
           onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (build) => const CreatePartner()));
+            Navigator.of(context).push(
+                PageAnimationTransition(
+                    page:  const CreatePartner(),
+                    pageAnimationType: RightToLeftFadedTransition()
+                )
+            );
           },
           child: Container(
             height: 80,
@@ -478,7 +523,11 @@ class _HomeState extends State<HomeMain> {
           ),
           onTap: () {
             Navigator.of(context).push(
-                MaterialPageRoute(builder: (builder) => const CreateEmployee()));
+                PageAnimationTransition(
+                    page:  const CreateEmployee(),
+                    pageAnimationType: RightToLeftFadedTransition()
+                )
+            );
           },
         )),
         const SizedBox(
@@ -527,17 +576,21 @@ class _HomeState extends State<HomeMain> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Icon(
-                  Icons.euro,
+                  Icons.arrow_circle_up,
                   size: 40,
                   color: Colors.orange,
                 ),
-                Text("Caisiers", style: TextStyle(fontSize: 11))
+                Text("Alimentation", style: TextStyle(fontSize: 11))
               ],
             ),
           ),
           onTap: () {
             Navigator.of(context).push(
-                MaterialPageRoute(builder: (builder) => const DepositAccountAgency()));
+                PageAnimationTransition(
+                    page:  const DepositAccountAgency(),
+                    pageAnimationType: RightToLeftFadedTransition()
+                )
+            );
           },
         )),
         const SizedBox(
@@ -545,25 +598,33 @@ class _HomeState extends State<HomeMain> {
         ),
         Expanded(
             child: InkWell(
-          child: Container(
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Icon(
-                  Icons.settings,
-                  size: 40,
-                  color: Colors.orange,
+              child: Container(
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                Text("Parametre", style: TextStyle(fontSize: 11))
-              ],
-            ),
-          ),
-        )),
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Icon(
+                      Icons.compare_arrows,
+                      size: 40,
+                      color: Colors.green,
+                    ),
+                    Text("Rechargement", style: TextStyle(fontSize: 11))
+                  ],
+                ),
+              ),
+              onTap: () {
+                Navigator.of(context).push(
+                    PageAnimationTransition(
+                        page:  const OperationOnMainAgency(),
+                        pageAnimationType: RightToLeftFadedTransition()
+                    )
+                );
+              },
+            )),
         const SizedBox(
           width: 20,
         ),
@@ -579,17 +640,21 @@ class _HomeState extends State<HomeMain> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Icon(
-                  Icons.folder_delete,
+                  Icons.sort,
                   size: 40,
                   color: Colors.orange,
                 ),
-                Text("Corbeilles", style: TextStyle(fontSize: 11))
+                Text("Liste", style: TextStyle(fontSize: 11))
               ],
             ),
           ),
           onTap: () {
             Navigator.of(context).push(
-                MaterialPageRoute(builder: (builder) => const Personnel()));
+                PageAnimationTransition(
+                    page:  const ListPartners(),
+                    pageAnimationType: RightToLeftFadedTransition()
+                )
+            );
           },
         )),
         const SizedBox(

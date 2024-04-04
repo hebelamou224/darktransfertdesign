@@ -11,7 +11,7 @@ class CustomerRepository {
         .IP_ADDRESS}:8080/v1/api/transfert/customer?identify=$identifyCustomer");
     final response = await http.get(url);
     if (response.statusCode == 200) {
-      var data = jsonDecode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
       var dateFormatDeposit = DateTime.parse(data["operation"]["dateDeposit"]);
       var dateFormatWithdrawal = DateTime.now();
       if(data["operation"]["dateWithdrawal"] != null){
@@ -47,7 +47,7 @@ class CustomerRepository {
         .IP_ADDRESS}:8080/v1/api/transfert/customer/dateModifyDesc/1");
     final response = await http.get(url);
     if (response.statusCode == 200) {
-      var data = jsonDecode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
       var dateFormatDeposit = DateTime.parse(data["operation"]["dateDeposit"]);
       var dateFormatDateModify = DateTime.now();
       var dateFormatWithdrawal = DateTime.now();
@@ -90,7 +90,7 @@ class CustomerRepository {
         .IP_ADDRESS}:8080/v1/api/transfert/customer/dateModifyDesc");
     final response = await http.get(url);
     if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
+      List<dynamic> data= json.decode(utf8.decode(response.bodyBytes));
 
       List<Customer> listCustomerWithOperation = data.map((customer){
         var dateFormatDeposit = DateTime.parse(customer["operation"]["dateDeposit"]);
@@ -137,7 +137,7 @@ class CustomerRepository {
         .IP_ADDRESS}:8080/v1/api/transfert/customer/sort?fullname=$fullname&fullnameRecever=$fullname&identify=$fullname");
     final response = await http.get(url);
     if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
+      List<dynamic> data= json.decode(utf8.decode(response.bodyBytes));
 
       List<Customer> listCustomerWithOperation = data.map((customer){
         var dateFormatDeposit = DateTime.parse(customer["operation"]["dateDeposit"]);

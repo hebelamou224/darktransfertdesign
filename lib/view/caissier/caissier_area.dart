@@ -30,7 +30,7 @@ class _CaissierAreaState extends State<CaissierArea> {
   CustomerService customerService = CustomerService();
 
   bool showAccountSolde = true;
-  late Future<Agency?> agencyFuture;
+  late Future<AgencyModel?> agencyFuture;
   late Future<Customer?> lastOperation;
   TextEditingController searchController = TextEditingController();
   FocusNode searchFocus = FocusNode();
@@ -38,7 +38,9 @@ class _CaissierAreaState extends State<CaissierArea> {
   @override
   void initState() {
     super.initState();
+    //Get information for the agency when open the app
     agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency);
+    //Get last operation
     lastOperation = customerService.findFirstByOrderByOperationDateModifyDesc();
   }
 
@@ -58,6 +60,16 @@ class _CaissierAreaState extends State<CaissierArea> {
               color: Colors.white, fontWeight: FontWeight.w500, fontSize: 18),
         ),
         actions: [
+          IconButton(
+              onPressed: (){
+                setState(() {
+                  agencyFuture = agencyService.findByIdentifyAgency(UserConnected.identifyAgency);
+                  //Get last operation
+                  lastOperation = customerService.findFirstByOrderByOperationDateModifyDesc();
+                });
+              },
+              icon: const Icon(Icons.refresh)
+          ),
           IconButton(
               onPressed: () async{
                 if(await confirm(
@@ -179,6 +191,7 @@ class _CaissierAreaState extends State<CaissierArea> {
           borderRadius: BorderRadius.circular(5), color: Colors.white),
       child: Column(
         children: [
+          //for show the name agency
           FutureBuilder(
               future: agencyFuture,
               builder: (context, snasop){
@@ -196,6 +209,7 @@ class _CaissierAreaState extends State<CaissierArea> {
                 }
               }
           ),
+          //for show the an amount agency
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -260,7 +274,12 @@ class _CaissierAreaState extends State<CaissierArea> {
               const Text("Dernier transaction"),
               TextButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, "/listOfTransaction");
+                  Navigator.of(context).push(
+                      PageAnimationTransition(
+                          page: const ListOfTransaction(),
+                          pageAnimationType: RightToLeftFadedTransition()
+                      )
+                  );
                 },
                 child: const Text(
                   "VOIR PLUS",
@@ -439,11 +458,12 @@ class _CaissierAreaState extends State<CaissierArea> {
             ),
           ),
           onTap: () {
+            String day = DateTime.now().day < 10 ? "0${DateTime.now().day}" : "${DateTime.now().day}";
+            String month = DateTime.now().month < 10 ? "0${DateTime.now().month}" : "${DateTime.now().month}";
+            int year = DateTime.now().year;
 
-            String date = "";
-            DateTime.now().month < 10 ?
-                date = "${DateTime.now().year}-0${DateTime.now().month}-${DateTime.now().day}" :
-                date = "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}";
+            String date = "$year-$month-$day";
+
             Navigator.of(context).push(
                 PageAnimationTransition(
                     page: ActionEmployee(date: date, allAction: false, title: "Ajourd'hui"),

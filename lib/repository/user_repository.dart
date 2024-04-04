@@ -24,7 +24,7 @@ class UserRepository{
     final response = await http
         .get(Uri.parse("http://192.168.21.113:8080/v1/api/transfert/employee?username=$username&&password=$password"));
     if(response.statusCode == 200){
-      var object = jsonDecode(response.body);
+      final object = json.decode(utf8.decode(response.bodyBytes));
       Employee employee = Employee(
           id: object["id"],
           username: object["username"],

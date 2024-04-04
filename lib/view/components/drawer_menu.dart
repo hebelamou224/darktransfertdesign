@@ -1,9 +1,21 @@
 
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:darktransfert/home.dart';
 import 'package:darktransfert/user_connect_info.dart';
-import 'package:darktransfert/view/favorite.dart';
+import 'package:darktransfert/view/list_partners.dart';
 import 'package:darktransfert/view/user.dart';
 import 'package:flutter/material.dart';
+import 'package:page_animation_transition/animations/right_to_left_faded_transition.dart';
+import 'package:page_animation_transition/page_animation_transition.dart';
+
+import '../agency/page/create_agency.dart';
+import '../agency/page/create_employee.dart';
+import '../agency/page/deposit_account_agency.dart';
+import '../caissier/pages/action.dart';
+import '../comptable/page/rechargement.dart';
+import '../login.dart';
+import '../partner/page/create_partner.dart';
+
 
 class NavigationDrawers extends StatelessWidget {
   const NavigationDrawers({super.key});
@@ -27,30 +39,34 @@ class NavigationDrawers extends StatelessWidget {
         onTap: (){
           //close navigator drawer before
           Navigator.pop(context);
-          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const UserPage()));
+          Navigator.of(context).push(
+              PageAnimationTransition(
+                  page: const UserPage(),
+                  pageAnimationType: RightToLeftFadedTransition()
+              )
+          );
         },
         child: Container(
-          //color: Colors.blue.shade700,
           padding:
-              EdgeInsets.only(top: MediaQuery.of(context).padding.top, bottom: 24),
-          child: const Column(
+          EdgeInsets.only(top: MediaQuery.of(context).padding.top, bottom: 24),
+          child:  Column(
             children:  [
               CircleAvatar(
                 radius: 52,
-                backgroundImage: NetworkImage(
-                    "https://media.istockphoto.com/id/1476170969/fr/photo/portrait-dun-jeune-homme-pr%C3%AAt-%C3%A0-lemploi-business-concept.webp?b=1&s=170667a&w=0&k=20&c=y1iV8F--V8Q-L1YvZvAcA7Z0XeOkK4cmRUdeHz_gz_I="),
+                backgroundColor: Colors.orange,
+                child: Center(child: Text(UserConnected.letterOfName(), style: const TextStyle(fontSize: 27, fontWeight: FontWeight.bold),),),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 12,
               ),
               Text(
-                "Moriba Hebelamou",
-                style: TextStyle(fontSize: 28, color: Colors.white),
+                UserConnected.fullname,
+                style: const TextStyle(fontSize: 28, color: Colors.white),
               ),
               Text(
-                "dev.hebelamou@gmail.com",
-                style: TextStyle(fontSize: 16, color: Colors.white),
-              )
+                UserConnected.telephone,
+                style: const TextStyle(fontSize: 16, color: Colors.white),
+              ),
             ],
           ),
         ),
@@ -73,20 +89,47 @@ class NavigationDrawers extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.person_4),
+            leading: const Icon(Icons.storefront),
+            title: const Text("Agences"),
+            onTap: () {
+              //Close the navigation drawer before
+              Navigator.pop(context);
+
+              Navigator.of(context).push(
+                  PageAnimationTransition(
+                      page:  const CreateAgency(),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.personal_injury),
             title: const Text("Patenaires"),
             onTap: () {
               //Close the navigation drawer before
               Navigator.pop(context);
 
               Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const Favorite()));
+                  PageAnimationTransition(
+                      page:  const CreatePartner(),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
+              );
             },
           ),
           ListTile(
-            leading: const Icon(Icons.person),
+            leading: const Icon(Icons.groups),
             title: const Text("Personnels"),
-            onTap: () {},
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                  PageAnimationTransition(
+                      page:  const CreateEmployee(),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.account_balance_wallet),
@@ -94,9 +137,56 @@ class NavigationDrawers extends StatelessWidget {
             onTap: () {},
           ),
           ListTile(
-            leading: const Icon(Icons.add_box),
-            title: const Text("Caisse"),
-            onTap: () {},
+            leading: const Icon(Icons.arrow_circle_up),
+            title: const Text("Alimentation"),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                  PageAnimationTransition(
+                      page:  const DepositAccountAgency(),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.compare_arrows),
+            title: const Text("Rechargement"),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                  PageAnimationTransition(
+                      page:  const OperationOnMainAgency(),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.sort),
+            title: const Text("Liste"),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                  PageAnimationTransition(
+                      page:  const ListPartners(),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.manage_history),
+            title: const Text("Historique"),
+            onTap: () {
+              Navigator.pop(context);
+              /*Navigator.of(context).push(
+                  PageAnimationTransition(
+                      page:  const ListPartners(),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
+              );*/
+            },
           ),
           const Divider(
             color: Colors.orangeAccent,
@@ -104,17 +194,40 @@ class NavigationDrawers extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text("Paramettres"),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: const Icon(Icons.delete,color: Colors.red,),
-            title: const Text("Corbeille"),
-            onTap: () {},
+            onTap: () {
+              Navigator.pop(context);
+            },
           ),
           ListTile(
             leading: const Icon(Icons.history),
-            title: const Text("Historique"),
-            onTap: () {},
+            title: const Text("Historique actions"),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                  PageAnimationTransition(
+                      page: const ActionEmployee(date: "", allAction: true, title: "Historique"),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red,),
+            title: const Text("Deconnection", style: TextStyle(color: Colors.red),),
+            onTap: () async{
+              Navigator.pop(context);
+              if(await confirm(
+                  context,
+                  title: const Text("Deconnexion"),
+                  content: const Text("Voullez vous deconnectez ?"),
+                  textOK: const Text("OUI"),
+                  textCancel: const Text("NON")
+              )){
+                Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => const LoginPage())
+                );
+              }
+            },
           ),
         ],
       ),

@@ -1,13 +1,14 @@
 import 'dart:async';
 
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:darktransfert/model/agency.dart';
-import 'package:darktransfert/model/employee.dart';
 import 'package:darktransfert/model/partner.dart';
 import 'package:darktransfert/service/agency_service.dart';
 import 'package:darktransfert/service/employee_service.dart';
 import 'package:darktransfert/service/partner_services.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
+import '../../../user_connect_info.dart';
 
 class DepositAccountAgency extends StatefulWidget {
   const DepositAccountAgency({super.key});
@@ -18,7 +19,7 @@ class DepositAccountAgency extends StatefulWidget {
 
 class _DepositAccountAgencyState extends State<DepositAccountAgency> {
   final formKey = GlobalKey<FormState>();
-  final montantDeposit = TextEditingController();
+  final amountDeposit = TextEditingController();
   String partnerUsername = "";
   late String identifyAgency = "";
 
@@ -27,12 +28,14 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
   bool isSelectedPartner = true;
   bool showIconUsernameEmployeeExist = false;
 
-  late Future<List<Agency>> agencies;
+  late Future<List<AgencyModel>> agencies;
   late Future<List<Partner>> partners;
 
   PartnerService partnerService = PartnerService();
   AgencyService agencyService = AgencyService();
   EmployeeService employeeService = EmployeeService();
+
+  FocusNode focusAmount = FocusNode();
 
   @override
   void initState() {
@@ -43,7 +46,8 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
   @override
   void dispose() {
     super.dispose();
-    montantDeposit.dispose();
+    amountDeposit.dispose();
+    focusAmount.dispose();
   }
 
   @override
@@ -91,12 +95,10 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
-                                return const CircularProgressIndicator();
+                                return const CircularProgressIndicator(color: Colors.orange,);
                               } else if (snapshot.hasError) {
-                                return Container(
-                                  child: const Text(
-                                      "Error de chargement des partenaires"),
-                                );
+                                return const Text(
+                                    "Error de chargement des partenaires");
                               } else {
                                 return DropdownButtonFormField(
                                   validator: (value) => (value == null ||
@@ -126,7 +128,7 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
                                     return DropdownMenuItem(
                                       value: partner.username,
                                       child: Text(
-                                          '${partner.fullname} : ${partner.telephone}'),
+                                          '${partner.fullname} : ${partner.telephone != ''? partner.telephone : '' }'),
                                     );
                                   }).toList(),
                                 );
@@ -143,14 +145,11 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
                               child: FutureBuilder(
                                 future: agencies,
                                 builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const CircularProgressIndicator();
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return const CircularProgressIndicator(color: Colors.orange,);
                                   } else if (snapshot.hasError) {
-                                    return Container(
-                                      child: const Text(
-                                          "Error de chargement des agences"),
-                                    );
+                                    return const Text(
+                                        "Error de chargement des agences, veuillez reprendre");
                                   } else {
                                     return DropdownButtonFormField(
                                       validator: (value) => (value == null ||
@@ -168,7 +167,9 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
                                                 width: 2)),
                                       ),
                                       onChanged: (value) {
-                                        identifyAgency = value;
+                                        setState(() {
+                                          identifyAgency = value;
+                                        });
                                       },
                                       items: snapshot.data
                                           ?.map<DropdownMenuItem>((agency) {
@@ -180,21 +181,24 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
                                     );
                                   }
                                 },
-                              )),
+                              )
+                      ),
                       Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         child: TextFormField(
                           keyboardType: TextInputType.number,
+                          focusNode: focusAmount,
                           decoration: const InputDecoration(
                               prefixIcon: TextButton(onPressed: null, child: Text("GNF", style: TextStyle(fontWeight: FontWeight.w600),)),
-                              suffixIcon: TextButton(onPressed: null, child: Text("GNF", style: TextStyle(fontWeight: FontWeight.w600, color: Colors.orange),)),
                               border: OutlineInputBorder(),
                               focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Colors.orange, width: 2)),
+                                      color: Colors.orange, width: 2)
+                              ),
                               labelText: "Montant*",
-                              hintText: "Entrer le montant de rechargement"),
-                          controller: montantDeposit,
+                              hintText: "Entrer le montant de rechargement"
+                          ),
+                          controller: amountDeposit,
                           validator: (value) {
                             if (value == "") {
                               return "Veuillez entrer le montant de recharge";
@@ -208,10 +212,11 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
                         ),
                       ),
                       isLoading
-                          ? const CircularProgressIndicator()
+                          ? const CircularProgressIndicator(color: Colors.orange,)
                           : submit(formKey),
                     ],
-                  ))
+                  )
+              )
             ],
           ),
         ),
@@ -226,111 +231,55 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
       child: ElevatedButton(
         onPressed: () async {
           if (formKey.currentState!.validate()) {
+            focusAmount.unfocus();
             setState(() {
               isLoading = true;
             });
-            //Confirmation de l'enregistrement
-
-            showDialog(
-                context: context,
-                builder: (build) {
-                  return AlertDialog(
+            //confirm for the deposit
+            if(await confirm(
+                context,
+                title: const Text("Alimentation"),
+                content: const Text("Confirmez-vous le depôt ?"),
+                textOK: const Text("OUI"),
+                textCancel: const Text("NON"),
+            )){
+              await agencyService.findByIdentifyAgency(UserConnected.identifyAgency)
+              .then((value) async{
+                if(value!.account >= double.parse(amountDeposit.text)){
+                  depositOnAccountAgency();
+                }else{
+                  if(await confirm(
+                    context,
                     title: const Row(
                       children: [
-                        Icon(
-                          Icons.info,
-                          color: Colors.green,
-                        ),
-                        SizedBox(
-                          width: 8,
-                        ),
-                        Text("Alimentation"),
+                        Icon(Icons.error, color: Colors.red,),
+                        SizedBox(width: 5,),
+                        Text("Alimentation")
                       ],
                     ),
-                    content: const Text("Confirmez-vous le depôt ?"),
-                    actions: [
-                      //Enregistrement refuser
-                      TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text(
-                            "Annuler",
-                            style: TextStyle(color: Colors.red),
-                          )),
-
-                      TextButton(
-                          onPressed: () {
-                            //Enregistrement accepter
-
-                            Navigator.of(context).pop();
-
-                            Future<Agency?> response =
-                                agencyService.depositOnAccountAgency(
-                                    partnerUsername,
-                                    identifyAgency,
-                                    double.parse(montantDeposit.text));
-                            response.then((agency) {
-                              if (agency != null) {
-                                showDialog(
-                                    context: context,
-                                    builder: (builder) {
-                                      return AlertDialog(
-                                        title: const Text("Alimentaion"),
-                                        content: Container(
-                                          padding: const EdgeInsets.all(10),
-                                          child: Text(
-                                              "Alimentation effectuer avec succes, le nouveau solde de cette agence est : ${agency.account} GNF"),
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                                montantDeposit.text = "";
-                                              },
-                                              child: const Text("OK"))
-                                        ],
-                                        icon: const Icon(
-                                          Icons.check_circle,
-                                          size: 40,
-                                          color: Colors.green,
-                                        ),
-                                      );
-                                    });
-                                //end succes
-                              } else {
-                                showDialog(
-                                    context: context,
-                                    builder: (builder) {
-                                      return AlertDialog(
-                                        title: const Text("Alimentaion"),
-                                        content: Container(
-                                          padding: const EdgeInsets.all(10),
-                                          child: const Text(
-                                              "Une error s'est produite veuillez reprendre"),
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                              },
-                                              child: const Text("OK"))
-                                        ],
-                                        icon: const Icon(
-                                          Icons.close,
-                                          size: 40,
-                                          color: Colors.red,
-                                        ),
-                                      );
-                                    });
-                              }
-                            });
-                          },
-                          child: const Text("Confrimer")),
-                    ],
-                  );
-                });
-
+                    content: Text("Solde insuffissant veuillez recharger le compte de l'agence '${value.name}', solde actuel est: ${value.account} GNF"),
+                    textOK: const Text("OK"),
+                    textCancel: const Text("Fermer"),
+                  )){
+                  }
+                }
+              }, onError: (error) async{
+                if(await confirm(
+                    context,
+                    title: const Row(
+                      children: [
+                        Icon(Icons.error, color: Colors.red,),
+                        SizedBox(width: 5,),
+                        Text("Alimentation")
+                      ],
+                    ),
+                    content: const Text("Error de recuperation des informations de l'agence principale"),
+                    textOK: const Text("OK"),
+                    textCancel: const Text("Fermer"),
+                )){
+                }
+              });
+            }
             setState(() {
               isLoading = false;
             });
@@ -344,4 +293,78 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
       ),
     );
   }
+
+
+  Future<void> depositOnAccountAgency() async{
+    setState(() {
+      isLoading = true;
+    });
+    agencyService.updateAccountAgencyAfterOperation(
+        UserConnected.identifyAgency,
+        double.parse(amountDeposit.text),
+        "WITHDRAWAL"
+    ).then((mainAgency) async{
+      if (mainAgency != null) {
+
+        agencyService.depositOnAccountAgency(
+            partnerUsername,
+            identifyAgency,
+            double.parse(amountDeposit.text)
+        ).then((agency) async{
+          if(await confirm(
+            context,
+            title: const Row(
+              children: [
+                Icon(Icons.check_circle, size: 40, color: Colors.green,
+                ),
+                Text("Alimentation"),
+              ],
+            ),
+            content: Text("Alimentation effectuée avec succes, le nouveau solde de l'agence de '${agency!.name}' est : ${agency.account} GNF"),
+            textOK: const Text("OK"),
+            textCancel: const Text("Fermer"),
+          )){
+            Navigator.pop(context);
+          }else{
+            Navigator.pop(context);
+          }
+        }, onError: (err) async{
+          if(await confirm(
+            context,
+            title: const Row(
+              children: [
+                Icon(Icons.error, size: 40, color: Colors.red,
+                ),
+                Text("Alimentation"),
+              ],
+            ),
+            content: const Text("Une error s'est produit l'ors du depot, veuillez reprendre"),
+            textOK: const Text("OK"),
+            textCancel: const Text("Fermer"),
+          )){
+          }
+        });
+        //end succes
+      }
+    }, onError: (error) async{
+      if(await confirm(
+        context,
+        title: const Row(
+          children: [
+            Icon(Icons.error, size: 40, color: Colors.red,
+            ),
+            Text("Alimentation"),
+          ],
+        ),
+        content: const Text("Error de mise à jour du compte de l'agence principal, veuillez reprendre l'operation"),
+        textOK: const Text("OK"),
+        textCancel: const Text("Fermer"),
+      )){
+      }
+    });
+    setState(() {
+      isLoading = false;
+    });
+  }
+
 }

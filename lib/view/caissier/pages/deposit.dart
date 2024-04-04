@@ -10,11 +10,6 @@ import 'package:darktransfert/view/caissier/pages/search_transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:page_animation_transition/animations/right_to_left_faded_transition.dart';
 import 'package:page_animation_transition/page_animation_transition.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-
-import '../../components/print.dart';
-import 'liste_of_transactions.dart';
 
 class DepositAgencyCustome extends StatefulWidget {
   const DepositAgencyCustome({super.key});
@@ -279,7 +274,7 @@ class _DepositAgencyCustomeState extends State<DepositAgencyCustome> {
                                 if(customer != null){
 
                                   //Update account agency after deposit
-                                  Future<Agency?> agenceFuture = agencyService.updateAccountAgencyAfterOperation(UserConnected.identifyAgency!, amountDeposit,"DEPOSIT");
+                                  Future<AgencyModel?> agenceFuture = agencyService.updateAccountAgencyAfterOperation(UserConnected.identifyAgency, amountDeposit,"DEPOSIT");
                                   agenceFuture.then((agency) async {
 
                                     //Confirm for the print recu after operation deposit

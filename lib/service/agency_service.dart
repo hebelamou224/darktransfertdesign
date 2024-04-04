@@ -9,20 +9,20 @@ class AgencyService{
 
   AgencyRepository agencyRepository = AgencyRepository();
 
-  Future<List<Agency>> findAllAgencyByPartner(String usernamePartner) async{
-    List<Agency> list = await agencyRepository.findAllAgencyByPartner(usernamePartner);
+  Future<List<AgencyModel>> findAllAgencyByPartner(String usernamePartner) async{
+    List<AgencyModel> list = await agencyRepository.findAllAgencyByPartner(usernamePartner);
     return list;
   }
 
-  Future<String> addAgencyForPartner(Agency agency, String partnerUsername){
+  Future<String> addAgencyForPartner(AgencyModel agency, String partnerUsername){
     return agencyRepository.addAgencyForPartner(agency, partnerUsername);
   }
 
-  Future<Agency?> depositOnAccountAgency(String usernamePartner, String identifyAgency, double amount) async{
+  Future<AgencyModel?> depositOnAccountAgency(String usernamePartner, String identifyAgency, double amount) async{
     return await agencyRepository.depositOnAccountAgency(usernamePartner, identifyAgency, amount);
   }
 
-  Future<Agency?> findByIdentifyAgency(String identifyAgency) async{
+  Future<AgencyModel?> findByIdentifyAgency(String identifyAgency) async{
     return await agencyRepository.findByIdentifyAgency(identifyAgency);
   }
 
@@ -30,7 +30,7 @@ class AgencyService{
     return await agencyRepository.deposit(customer, amount);
   }
 
-  Future<Agency?> updateAccountAgencyAfterOperationDeposit(String identifyAgency, double amount)async{
+  Future<AgencyModel?> updateAccountAgencyAfterOperationDeposit(String identifyAgency, double amount)async{
     return await agencyRepository.updateAccountAgencyAfterOperationDeposit(identifyAgency, amount);
   }
 
@@ -38,8 +38,11 @@ class AgencyService{
     return await agencyRepository.withdrawal(codeWithdrawal);
   }
 
-  Future<Agency?> updateAccountAgencyAfterOperation(String identifyAgency, double amount, String type) async{
+  Future<AgencyModel?> updateAccountAgencyAfterOperation(String identifyAgency, double amount, String type) async{
     return await agencyRepository.updateAccountAgencyAfterOperation(identifyAgency, amount, type);
   }
 
+  Future<AgencyModel?> updateOnAccountMainAgencyAfterOperationWithdrawal(String identifyAgency,  double amount) async{
+    return await agencyRepository.updateOnAccountMainAgencyAfterOperationWithdrawal(identifyAgency, amount);
+  }
 }
