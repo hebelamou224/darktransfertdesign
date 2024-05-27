@@ -9,4 +9,8 @@ class ActionService{
   Future<List<ActionsConnected>?> findActionByEmployeeId(int employeeId, String date, bool all) async{
     return await actionRepository.findActionByEmployeeId(employeeId,date, all);
   }
+
+  Future<List<ActionsConnected>?> findAllByIdentifyAgency(String identifyAgency) async{
+    return await actionRepository.findAllByIdentifyAgency(identifyAgency);
+  }
 }

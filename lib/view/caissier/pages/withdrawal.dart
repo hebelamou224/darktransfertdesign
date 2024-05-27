@@ -7,7 +7,6 @@ import 'package:darktransfert/service/agency_service.dart';
 import 'package:darktransfert/service/customer_service.dart';
 import 'package:darktransfert/user_connect_info.dart';
 import 'package:darktransfert/view/caissier/pages/search_transaction.dart';
-import 'package:darktransfert/view/components/field.dart';
 import 'package:darktransfert/view/components/scan_qr_code.dart';
 import 'package:flutter/material.dart';
 import 'package:page_animation_transition/animations/right_to_left_faded_transition.dart';

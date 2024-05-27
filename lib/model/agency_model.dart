@@ -16,6 +16,11 @@ class AgencyWithEmployees{
     required this.description,
     required this.lieu,
     required this.account,
-    required this.employees
+    required this.employees,
   });
+
+  @override
+  String toString() {
+    return 'AgencyWithEmployees{id: $id, identify: $identify, name: $name, description: $description, lieu: $lieu, account: $account, employees: $employees}';
+  }
 }

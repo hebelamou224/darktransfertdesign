@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:darktransfert/constant.dart';
 import 'package:darktransfert/model/agency.dart';
@@ -9,19 +9,16 @@ import 'package:http/http.dart' as http;
 
 class AgencyRepository {
 
-  static String IP_ADDRESS = "192.168.21.113";
-
-  List<AgencyModel> parseResponse(String responseBody) {
-    final parsed = jsonDecode(responseBody).cast<Map<String, dynamic>>();
+  List<AgencyModel> parseResponse(Uint8List bodyBytes) {
+    final parsed = json.decode(utf8.decode(bodyBytes)).cast<Map<String, dynamic>>();
     return parsed.map<AgencyModel>((json) => AgencyModel.fromJson(json)).toList();
   }
 
   Future<List<AgencyModel>> findAllAgencyByPartner(String usernamePartner) async {
-    Uri url = Uri.parse("http://${Constant
-        .IP_ADDRESS}:8080/v1/api/transfert/agency/$usernamePartner");
+    Uri url = Uri.parse("${CONSTANTE.URL_DATABASE}/agency/$usernamePartner");
     final response = await http.get(url);
     if (response.statusCode == 200) {
-      List<AgencyModel> list = parseResponse(response.body);
+      List<AgencyModel> list = parseResponse(response.bodyBytes);
       return list;
     }
     return [];
@@ -29,8 +26,8 @@ class AgencyRepository {
 
   Future<String> addAgencyForPartner(AgencyModel agency,
       String partnerUserName) async {
-    Uri url = Uri.parse("http://${Constant
-        .IP_ADDRESS}:8080/v1/api/transfert/partner/addAgencyForPartner/$partnerUserName");
+    Uri url = Uri.parse("${CONSTANTE
+        .URL_DATABASE}/partner/addAgencyForPartner/$partnerUserName");
     var data = <String, dynamic>{
       "identify": agency.identify,
       "name": agency.name,
@@ -49,8 +46,8 @@ class AgencyRepository {
 
   Future<AgencyModel?> depositOnAccountAgency(String usernamePartner,
       String identifyAgency, double amount) async {
-    Uri url = Uri.parse("http://${Constant
-        .IP_ADDRESS}:8080/v1/api/transfert/agency/$identifyAgency?usernamePartner=$usernamePartner&amount=$amount&idSource=${UserConnected.id}");
+    Uri url = Uri.parse("${CONSTANTE
+        .URL_DATABASE}/agency/$identifyAgency?usernamePartner=$usernamePartner&amount=$amount&idSource=${UserConnected.id}");
     final response = await http.put(url);
     if (response.statusCode == 200) {
       final object= json.decode(utf8.decode(response.bodyBytes));
@@ -67,8 +64,8 @@ class AgencyRepository {
   }
 
   Future<AgencyModel?> findByIdentifyAgency(String identifyAgency) async {
-    Uri url = Uri.parse("http://${Constant
-        .IP_ADDRESS}:8080/v1/api/transfert/agency?identifyAgency=$identifyAgency");
+    Uri url = Uri.parse("${CONSTANTE
+        .URL_DATABASE}/agency?identifyAgency=$identifyAgency");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final object= json.decode(utf8.decode(response.bodyBytes));
@@ -78,7 +75,8 @@ class AgencyRepository {
           name: object["name"],
           description: object["description"],
           lieu: object["lieu"],
-          account: object["account"]
+          account: object["account"],
+          owner: object["owner"]
       );
       return agency;
     }
@@ -86,8 +84,8 @@ class AgencyRepository {
   }
 
   Future<Customer?> deposit(Customer customer, double amount) async {
-    Uri url = Uri.parse("http://${Constant
-        .IP_ADDRESS}:8080/v1/api/transfert/operation/deposit?amount=$amount&idSource=${UserConnected.id}");
+    Uri url = Uri.parse("${CONSTANTE
+        .URL_DATABASE}/operation/deposit?amount=$amount&idSource=${UserConnected.id}&identifyAgency=${UserConnected.identifyAgency}");
     var data = <String, dynamic>{
       "identify": customer.identify,
       "fullname": customer.fullname,
@@ -98,7 +96,7 @@ class AgencyRepository {
       "fullnameRecever": customer.fullnameRecever,
       "phoneRecever": customer.phoneRecever,
       "addressRecever": customer.addressRecever,
-      "mailRecever": customer.mailRecever
+      "mailRecever": customer.mailRecever,
     };
     final response = await http.post(url, body: data, headers: {
       "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
@@ -124,8 +122,8 @@ class AgencyRepository {
 
   Future<AgencyModel?> updateAccountAgencyAfterOperationDeposit(
       String identifyAgency, double amount) async {
-    Uri url = Uri.parse("http://${Constant
-        .IP_ADDRESS}:8080/v1/api/transfert/agency/update/$identifyAgency?amount=$amount");
+    Uri url = Uri.parse("${CONSTANTE
+        .URL_DATABASE}/agency/update/$identifyAgency?amount=$amount");
     final response = await http.put(url);
     if (response.statusCode == 200) {
       final data= json.decode(utf8.decode(response.bodyBytes));
@@ -142,8 +140,8 @@ class AgencyRepository {
   }
 
   Future<String> withdrawal(String codeWithdrawal) async {
-    Uri url = Uri.parse("http://${Constant
-        .IP_ADDRESS}:8080/v1/api/transfert/operation/withdrawal/$codeWithdrawal?idSource=${UserConnected.id}");
+    Uri url = Uri.parse("${CONSTANTE
+        .URL_DATABASE}/operation/withdrawal/$codeWithdrawal?idSource=${UserConnected.id}");
     final response = await http.put(url);
     if (response.statusCode == 200) {
       return "succes";
@@ -153,8 +151,8 @@ class AgencyRepository {
 
   Future<AgencyModel?> updateAccountAgencyAfterOperation(
       String identifyAgency, double amount, String type) async {
-    Uri url = Uri.parse("http://${Constant
-        .IP_ADDRESS}:8080/v1/api/transfert/agency/updateAccount/$identifyAgency?amount=$amount&&type=$type");
+    Uri url = Uri.parse("${CONSTANTE
+        .URL_DATABASE}/agency/updateAccount/$identifyAgency?amount=$amount&&type=$type");
     final response = await http.put(url);
     if (response.statusCode == 200) {
       final data= json.decode(utf8.decode(response.bodyBytes));
@@ -172,8 +170,8 @@ class AgencyRepository {
 
   Future<AgencyModel?> updateOnAccountMainAgencyAfterOperationWithdrawal(
       String identifyAgency, double amount) async {
-    Uri url = Uri.parse("http://${Constant
-        .IP_ADDRESS}:8080/v1/api/transfert/agency/updateAccount/$identifyAgency/${UserConnected.id}/?amount=$amount");
+    Uri url = Uri.parse("${CONSTANTE
+        .URL_DATABASE}/agency/updateAccount/$identifyAgency/${UserConnected.id}/?amount=$amount");
     final response = await http.put(url);
     if (response.statusCode == 200) {
       final data= json.decode(utf8.decode(response.bodyBytes));

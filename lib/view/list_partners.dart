@@ -104,10 +104,12 @@ class _ListPartnersState extends State<ListPartners> {
               return Center(
                 heightFactor: MediaQuery.of(context).size.height,
                 child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(color: Colors.orange,),
                     SizedBox(height: 8,),
-                    Text("Veuillez partienter le chargement")
+                    Text("Veuillez partienter le chargement...")
                   ],
                 ),
               );
@@ -144,6 +146,14 @@ class _ListPartnersState extends State<ListPartners> {
                             );
                           },
                         ),
+                        onTap: (){
+                          Navigator.of(context).push(
+                              PageAnimationTransition(
+                                  page:  DetailsPartners(partner: snapshot.data![index]),
+                                  pageAnimationType: RightToLeftFadedTransition()
+                              )
+                          );
+                        },
                         leading: Container(
                           width: 50,
                           height: 50,

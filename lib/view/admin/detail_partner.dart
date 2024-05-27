@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:page_animation_transition/animations/right_to_left_faded_transition.dart';
 import 'package:page_animation_transition/page_animation_transition.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-
 import 'details_agency.dart';
 
 class DetailsPartners extends StatefulWidget {
@@ -16,7 +15,6 @@ class DetailsPartners extends StatefulWidget {
 }
 
 class _DetailsPartnersState extends State<DetailsPartners> {
-
   final style = const TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.w500
@@ -30,7 +28,7 @@ class _DetailsPartnersState extends State<DetailsPartners> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text(widget.partner.fullname),
+        title: Text("${widget.partner.fullname}(partenaire)"),
         leading: IconButton(
             icon: const Icon(Icons.close, color: Colors.red, size: 30,),
             onPressed: () {
@@ -186,13 +184,28 @@ class _DetailsPartnersState extends State<DetailsPartners> {
                         );
                       },
                     ),
-
+                    onTap: (){
+                      Navigator.of(context).push(
+                          PageAnimationTransition(
+                              page:  DetailsAgency(agency: agency,),
+                              pageAnimationType: RightToLeftFadedTransition()
+                          )
+                      );
+                    },
                   ),
                 );
               })),
             )
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamedAndRemoveUntil(context, "/dg", (route) => false);
+        },
+        tooltip: "Acceuil",
+        backgroundColor: Colors.orange,
+        child: const Icon(Icons.home_outlined, color: Colors.white,),
       ),
     );
   }

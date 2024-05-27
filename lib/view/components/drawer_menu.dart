@@ -3,6 +3,7 @@ import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:darktransfert/home.dart';
 import 'package:darktransfert/user_connect_info.dart';
 import 'package:darktransfert/view/list_partners.dart';
+import 'package:darktransfert/view/settings.dart';
 import 'package:darktransfert/view/user.dart';
 import 'package:flutter/material.dart';
 import 'package:page_animation_transition/animations/right_to_left_faded_transition.dart';
@@ -85,7 +86,8 @@ class NavigationDrawers extends StatelessWidget {
             title: const Text("Acceuil"),
             onTap: () {
               Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const HomeMain()));
+                  MaterialPageRoute(builder: (context) => const HomeMain())
+              );
             },
           ),
           ListTile(
@@ -196,6 +198,12 @@ class NavigationDrawers extends StatelessWidget {
             title: const Text("Paramettres"),
             onTap: () {
               Navigator.pop(context);
+              Navigator.of(context).push(
+                  PageAnimationTransition(
+                      page: const Settings(),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
+              );
             },
           ),
           ListTile(

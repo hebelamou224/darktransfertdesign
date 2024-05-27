@@ -9,6 +9,7 @@ import '../../user_connect_info.dart';
 import '../agency/page/deposit_account_agency.dart';
 import '../caissier/pages/action.dart';
 import '../login.dart';
+import '../settings.dart';
 
 class NavigationDrawerComptable extends StatelessWidget {
   const NavigationDrawerComptable({super.key});
@@ -124,7 +125,15 @@ class NavigationDrawerComptable extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text("Paramettres"),
-            onTap: () {},
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                  PageAnimationTransition(
+                      page: const Settings(),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.history),

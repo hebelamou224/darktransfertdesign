@@ -5,6 +5,7 @@ class AgencyModel {
   String description;
   String lieu;
   double account;
+  String? owner;
 
   AgencyModel({
     required this.id,
@@ -12,7 +13,8 @@ class AgencyModel {
     required this.name,
     required this.description,
     required this.lieu,
-    required this.account
+    required this.account,
+    this.owner
   });
 
   factory AgencyModel.fromJson(Map<String, dynamic> json){
@@ -22,7 +24,8 @@ class AgencyModel {
         name: json["name"] as String,
         description: json["description"] as String,
         lieu: json["lieu"] as String,
-        account: json["account"] as double
+        account: json["account"] as double,
+        owner: json["owner"] as String
     );
   }
 

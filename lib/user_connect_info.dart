@@ -1,4 +1,6 @@
 
+import 'package:darktransfert/model/partners_get.dart';
+
 class UserConnected{
   static int id = 0;
   static String username = "";
@@ -12,6 +14,9 @@ class UserConnected{
   static String identifyAgency = "";
   static String role = "";
   static String address = "";
+  static bool mainAgency = false;
+
+  static PartnerModel? partnerModel;
 
   static String  letterOfName(){
     String fullnameNotSpace = fullname.trim() ;

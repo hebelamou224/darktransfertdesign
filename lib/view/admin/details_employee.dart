@@ -1,6 +1,9 @@
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:darktransfert/model/employee.dart';
+import 'package:darktransfert/service/employee_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:kdialogs/kdialogs.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 
@@ -16,6 +19,8 @@ class _DetailsEmployeeState extends State<DetailsEmployee> {
 
   TextEditingController resetPasswordController = TextEditingController();
   FocusNode focusNodePassword = FocusNode();
+  bool focusPassword = false;
+  EmployeeService employeeService = EmployeeService();
 
   final style = const TextStyle(
       fontSize: 20,
@@ -197,10 +202,23 @@ class _DetailsEmployeeState extends State<DetailsEmployee> {
                     hintText: "Entrer un nouveau mot de passe",
                     labelStyle: const TextStyle(color: Colors.orange, fontSize: 20)
                 ),
+                onChanged: (value){
+                  setState(() {
+                    focusPassword = true;
+                  });
+                },
               ),
             ),
           ],
         ),
+      ),
+      floatingActionButton: focusPassword ? null : FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamedAndRemoveUntil(context, "/dg", (route) => false);
+        },
+        tooltip: "Acceuil",
+        backgroundColor: Colors.orange,
+        child: const Icon(Icons.home_outlined, color: Colors.white,),
       ),
     );
   }
@@ -230,6 +248,94 @@ class _DetailsEmployeeState extends State<DetailsEmployee> {
                   width: MediaQuery.of(context).size.width / 2,
                   child: ElevatedButton(
                       onPressed: () async{
+                        //Navigator.pop(context);
+                        if(resetPasswordController.text != ""){
+                          if(await confirm(
+                            context,
+                            title: const Row(
+                              children: [
+                                Icon(Icons.info, color: Colors.green,),
+                                SizedBox(width: 8,),
+                                Text("Confirmation"),
+                              ],
+                            ),
+                            content: const Text("Confirmez-vous la reinitialisation du mot de passe pour cet employé ?"),
+                            textOK: const Text("OUI"),
+                            textCancel: const Text("NON"),
+                          )){
+                          }else{
+                            return;
+                          }
+                          widget.employee.password = resetPasswordController.text;
+                          final close = await showKDialogWithLoadingMessage(context, message: "Veuillez patienter" );
+                          employeeService.updateInformation(widget.employee)
+                          .then((employee) async{
+                            close();
+                            if(employee != null){
+                              if(await confirm(
+                                context,
+                                title: const Row(
+                                  children: [
+                                    Icon(Icons.check_circle, size: 40, color: Colors.green,
+                                    ),
+                                    Text("Information"),
+                                  ],
+                                ),
+                                content: const Text("Modification effectuée avec succès"),
+                                textOK: const Text("OK"),
+                                textCancel: const Text("Fermer"),
+                              )){
+                                setState(() {
+                                  focusPassword = false;
+                                });
+                              }{
+                                setState(() {
+                                  focusPassword = false;
+                                });
+                              }
+                              Navigator.pop(context);
+                            }
+                          }, onError: (error){
+                            close();
+                            showDialog(
+                                context: context,
+                                builder: (builder){
+                                  return  AlertDialog(
+                                    icon: const Icon(Icons.close, color: Colors.red, size: 50,),
+                                    title: const Text("Error"),
+                                    content: const Text("Une erreur s'est produite l'ors de la motification, veuillez reprendre le process"),
+                                    actions: [
+                                      TextButton(
+                                          onPressed: (){
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text("OK")
+                                      )
+                                    ],
+                                  );
+                                }
+                            );
+                          });
+                        }else{
+                          showDialog(
+                              context: context,
+                              builder: (builder){
+                                return  AlertDialog(
+                                  icon: const Icon(Icons.close, color: Colors.red, size: 50,),
+                                  title: const Text("Error"),
+                                  content: const Text("Veuillez entrer un mot de passe"),
+                                  actions: [
+                                    TextButton(
+                                        onPressed: (){
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text("OK")
+                                    )
+                                  ],
+                                );
+                              }
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,

@@ -7,8 +7,7 @@ import 'package:http/http.dart' as http;
 class CustomerRepository {
 
   Future<Customer?> findByIdentify(String identifyCustomer) async {
-    Uri url = Uri.parse("http://${Constant
-        .IP_ADDRESS}:8080/v1/api/transfert/customer?identify=$identifyCustomer");
+    Uri url = Uri.parse("${CONSTANTE.URL_DATABASE}/customer?identify=$identifyCustomer");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final data = json.decode(utf8.decode(response.bodyBytes));
@@ -43,8 +42,8 @@ class CustomerRepository {
   }
 
   Future<Customer?> findFirstByOrderByOperationDateModifyDesc() async{
-    Uri url = Uri.parse("http://${Constant
-        .IP_ADDRESS}:8080/v1/api/transfert/customer/dateModifyDesc/1");
+    Uri url = Uri.parse("${CONSTANTE
+        .URL_DATABASE}/customer/dateModifyDesc/1");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final data = json.decode(utf8.decode(response.bodyBytes));
@@ -86,8 +85,7 @@ class CustomerRepository {
   }
 
   Future<List<Customer>?> findAllByOrderByOperationDateModifyDesc() async{
-    Uri url = Uri.parse("http://${Constant
-        .IP_ADDRESS}:8080/v1/api/transfert/customer/dateModifyDesc");
+    Uri url = Uri.parse("${CONSTANTE.URL_DATABASE}/customer/dateModifyDesc");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List<dynamic> data= json.decode(utf8.decode(response.bodyBytes));
@@ -133,8 +131,8 @@ class CustomerRepository {
   }
 
   Future<List<Customer>?> findAllByFullnameContainingOrFullnameReceverContainingOrderByOperationDateModifyDesc(String fullname) async{
-    Uri url = Uri.parse("http://${Constant
-        .IP_ADDRESS}:8080/v1/api/transfert/customer/sort?fullname=$fullname&fullnameRecever=$fullname&identify=$fullname");
+    Uri url = Uri.parse("${CONSTANTE
+        .URL_DATABASE}/customer/sort?fullname=$fullname&fullnameRecever=$fullname&identify=$fullname");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List<dynamic> data= json.decode(utf8.decode(response.bodyBytes));

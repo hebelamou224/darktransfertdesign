@@ -14,6 +14,7 @@ import '../caissier/pages/liste_of_transactions.dart';
 import '../caissier/pages/search_transaction.dart';
 import '../caissier/pages/withdrawal.dart';
 import '../login.dart';
+import '../settings.dart';
 
 class NavigationDrawerAgency extends StatelessWidget {
   const NavigationDrawerAgency({super.key});
@@ -177,10 +178,11 @@ class NavigationDrawerAgency extends StatelessWidget {
             title: const Text("Paramettres"),
             onTap: () {
               Navigator.pop(context);
-              Navigator.of(context).push(PageAnimationTransition(
-                  page: const WithDrawalAgencyCustome(),
-                  pageAnimationType: RightToLeftFadedTransition()
-              )
+              Navigator.of(context).push(
+                  PageAnimationTransition(
+                      page: const Settings(),
+                      pageAnimationType: RightToLeftFadedTransition()
+                  )
               );
             },
           ),

@@ -5,6 +5,7 @@ class ActionsConnected{
   String description;
   String typeAction;
   String dateAction;
+  String? identifyAgency;
 
   ActionsConnected({
     required this.id,
@@ -12,7 +13,8 @@ class ActionsConnected{
     required this.idAction,
     required this.description,
     required this.typeAction,
-    required this.dateAction
+    required this.dateAction,
+    this.identifyAgency
   });
 
   factory ActionsConnected.fromJson(Map<String, dynamic> json){
@@ -22,7 +24,8 @@ class ActionsConnected{
         idAction: json["idAction"] as int,
         description: json["description"] as String,
         typeAction: json["typeAction"] as String,
-        dateAction: json["dateAction"] as String
+        dateAction: json["dateAction"] as String,
+        identifyAgency: json["identifyAgency"] as String
     );
   }
 

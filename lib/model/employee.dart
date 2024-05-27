@@ -35,4 +35,8 @@ class Employee{
     );
   }
 
+  @override
+  String toString() {
+    return 'Employee{id: $id, username: $username, fullname: $fullname, address: $address, telephone: $telephone, dateRegister: $dateRegister, role: $role, identifyAgency: $identifyAgency, password: $password}';
+  }
 }

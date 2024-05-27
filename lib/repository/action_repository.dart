@@ -13,14 +13,24 @@ class ActionRepository{
     return parsed.map<ActionsConnected>((json) => ActionsConnected.fromJson(json)).toList();
   }
 
+
+
+  Future<List<ActionsConnected>?> findAllByIdentifyAgency(String identifyAgency) async{
+    Uri url = Uri.parse("${CONSTANTE.URL_DATABASE}/action?identifyAgency=$identifyAgency");
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      List<ActionsConnected> list = parseResponse(response.body);
+      return list;
+    }
+    return [];
+  }
+
   Future<List<ActionsConnected>?> findActionByEmployeeId(int employeeId, String date, bool all) async{
     Uri url;
     if(all){
-      url = Uri.parse("http://${Constant
-          .IP_ADDRESS}:8080/v1/api/transfert/action?EmployeeId=$employeeId");
+      url = Uri.parse("${CONSTANTE.URL_DATABASE}/action?EmployeeId=$employeeId");
     }else{
-      url = Uri.parse("http://${Constant
-          .IP_ADDRESS}:8080/v1/api/transfert/action/$employeeId?date=$date");
+      url = Uri.parse("${CONSTANTE.URL_DATABASE}/action/$employeeId?date=$date");
     }
     final response = await http.get(url);
     if (response.statusCode == 200) {

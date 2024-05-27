@@ -4,9 +4,12 @@ import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:darktransfert/model/agency.dart';
 import 'package:darktransfert/model/employee.dart';
 import 'package:darktransfert/model/partner.dart';
+import 'package:darktransfert/model/partners_get.dart';
+import 'package:darktransfert/repository/partner_repository.dart';
 import 'package:darktransfert/service/agency_service.dart';
 import 'package:darktransfert/service/employee_service.dart';
 import 'package:darktransfert/service/partner_services.dart';
+import 'package:darktransfert/user_connect_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:kdialogs/kdialogs.dart';
@@ -32,16 +35,14 @@ class _CreateEmployeeState extends State<CreateEmployee> {
   FocusNode focusTelephoneController = FocusNode();
   FocusNode focusUsernameEmployeeController = FocusNode();
 
-  String partnerUsername = "";
+  String partnerUsername = UserConnected.username;
   late String identifyAgency = "";
   String? role;
 
   bool isLoadingAgencyName = true;
-  bool isSelectedPartner = true;
   bool showIconUsernameEmployeeExist = false;
 
   late Future<List<AgencyModel>> agencies;
-  late Future<List<Partner>> partners;
 
   PartnerService partnerService = PartnerService();
   AgencyService agencyService = AgencyService();
@@ -51,7 +52,7 @@ class _CreateEmployeeState extends State<CreateEmployee> {
   @override
   void initState() {
     super.initState();
-    partners = partnerService.findAllPartner();
+    agencies = agencyService.findAllAgencyByPartner(UserConnected.username);
   }
 
   @override
@@ -103,72 +104,10 @@ class _CreateEmployeeState extends State<CreateEmployee> {
                       Container(
                         margin: const EdgeInsets.only(bottom: 15),
                         child: const Text(
-                          "Enregistrement d'un employe pour une agence",
+                          "Enregistrer un employee pour votre agence",
                           style: TextStyle(fontSize: 20),
                         ),
                       ),
-                      Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          child: FutureBuilder(
-                            future: partners,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const CircularProgressIndicator(color: Colors.orange,);
-                              } else if (snapshot.hasError) {
-                                return const Text(
-                                    "Error de chargement des partenaires");
-                              } else {
-                                return DropdownButtonFormField(
-                                  validator: (value) =>
-                                  (value == null ||
-                                      value == "")
-                                      ? "Veuillez selectionner un partenaire"
-                                      : null,
-                                  decoration: const InputDecoration(
-                                    prefixIcon: Icon(Icons.person),
-                                    labelText: "Partenaire*",
-                                    hintText: "Selectionner un partenaire*",
-                                    border: OutlineInputBorder(),
-                                    focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Colors.orange, width: 2)
-                                    ),
-                                  ),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      identifyAgency = "";
-                                      partnerUsername = value;
-                                      if(partnerUsername != "darktransfert"){
-                                        if(role == "COMPTABLE"){
-                                          role = null;
-                                        }
-                                      }
-                                      isSelectedPartner = false;
-                                      agencies =
-                                          agencyService.findAllAgencyByPartner(
-                                              value);
-                                    });
-                                  },
-                                  items: snapshot.data
-                                      ?.map<DropdownMenuItem>((partner) {
-                                    return DropdownMenuItem(
-                                      value: partner.username,
-                                      child: Text(
-                                          '${partner.fullname} : ${partner
-                                              .telephone}'),
-                                    );
-                                  }).toList(),
-                                );
-                              }
-                            },
-                          )),
-                      isSelectedPartner
-                          ? Container(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: const Text(
-                              "Veuillez selectionner un partenaire dabord pour afficher ses agences"))
-                          :
                       Container(
                           margin: const EdgeInsets.only(bottom: 10),
                           child: FutureBuilder(
@@ -216,15 +155,15 @@ class _CreateEmployeeState extends State<CreateEmployee> {
                         child: TextFormField(
                           decoration:  InputDecoration(
                               prefixIcon: showIconUsernameEmployeeExist ?
-                                const Icon(Icons.close,color: Colors.red,):
-                                const Icon(Icons.maps_home_work),
+                              const Icon(Icons.close,color: Colors.red,):
+                              const Icon(Icons.maps_home_work),
                               suffixIcon: showIconUsernameEmployeeExist ? IconButton(icon: const Icon(Icons.info_outline,color: Colors.red,),
                                 onPressed: (){
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                                     content: Text("Ce nom d'utilisateur existe déjà"),
-                                  backgroundColor: Colors.red,
-                                ));
-                              },) : null,
+                                    backgroundColor: Colors.red,
+                                  ));
+                                },) : null,
                               border: const OutlineInputBorder(),
                               focusedBorder: const OutlineInputBorder(
                                   borderSide: BorderSide(
@@ -363,19 +302,14 @@ class _CreateEmployeeState extends State<CreateEmployee> {
                                   borderSide: BorderSide(
                                       color: Colors.orange, width: 2)),
                             ),
-                            items:  [
-                              const DropdownMenuItem(
-                                value: "ADMIN",
-                                child: Text("ADMIN"),
-                              ),
-                              const DropdownMenuItem(
+                            items: const [
+                              DropdownMenuItem(
                                 value: "CAISSIER",
                                 child: Text("CAISSIER"),
                               ),
                               DropdownMenuItem(
-                                enabled: (partnerUsername == "darktransfert")? true : false,
                                 value: "COMPTABLE",
-                                child: const Text("COMPTABLE"),
+                                child: Text("COMPTABLE"),
                               )
                             ],
                           )
@@ -440,7 +374,7 @@ class _CreateEmployeeState extends State<CreateEmployee> {
             //Confirmation de l'enregistrement
             final close = await showKDialogWithLoadingMessage(context, message: "Veuillez patienter" );
             await employeeService.addEmployeeForAnAgency(employee, partnerUsername, identifyAgency)
-            .then((value) async{
+                .then((value) async{
               close();
               if(value == "succes"){
                 if(await confirm(
@@ -456,7 +390,6 @@ class _CreateEmployeeState extends State<CreateEmployee> {
                     textOK: const Text("OK"),
                     textCancel: const Text("")
                 )){
-
                 }
                 Navigator.pop(context);
               }else{

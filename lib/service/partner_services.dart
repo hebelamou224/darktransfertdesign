@@ -28,5 +28,18 @@ class PartnerService{
     return list;
   }
 
+  Future<PartnerModel?> login(String username, String password) async{
+    Partner partner =  Partner(
+        id: -1,
+        username: username,
+        address: "",
+        telephone: "",
+        fullname: "",
+        password: password
+    );
+
+    return await partnerRepository.login(partner);
+  }
+
 
 }

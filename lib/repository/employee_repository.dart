@@ -10,7 +10,7 @@ class EmployeeRepository{
 
   Future<String> addEmployeeForAnAgency(Employee employee, String usernamePartner, String identifyAgency) async{
 
-    Uri url = Uri.parse("http://${Constant.IP_ADDRESS}:8080/v1/api/transfert/partner/addEmployeeToAgency/$usernamePartner?identify=$identifyAgency");
+    Uri url = Uri.parse("${CONSTANTE.URL_DATABASE}/partner/addEmployeeToAgency/$usernamePartner?identify=$identifyAgency");
 
     var data = <String, dynamic>{
       "username": employee.username,
@@ -28,7 +28,7 @@ class EmployeeRepository{
   }
 
   Future<String> findByUsername(String usernuame) async{
-    Uri url = Uri.parse("http://${Constant.IP_ADDRESS}:8080/v1/api/transfert/employee/$usernuame");
+    Uri url = Uri.parse("${CONSTANTE.URL_DATABASE}/employee/$usernuame");
     final response = await http.get(url);
     if(response.statusCode == 200){
       return "exist";
@@ -46,7 +46,7 @@ class EmployeeRepository{
       "password": employee.password
     };
     
-    Uri url = Uri.parse("http://${Constant.IP_ADDRESS}:8080/v1/api/transfert/employee/update");
+    Uri url = Uri.parse("${CONSTANTE.URL_DATABASE}/employee/update");
     final response = await http.put(url, body: data);
     if(response.statusCode == 200){
       final data = json.decode(utf8.decode(response.bodyBytes));

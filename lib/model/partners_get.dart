@@ -8,8 +8,8 @@ class PartnerModel{
   String address;
   String telephone;
   String dateRegister;
+  String? password;
   List<AgencyWithEmployees> agencies;
-  List<Employee> employees;
 
   PartnerModel({
     required this.id,
@@ -19,13 +19,15 @@ class PartnerModel{
     required this.address,
     required this.dateRegister,
     required this.agencies,
-    required this.employees
+    this.password
   });
 
-  numberEmployees(){
-    return employees.length;
-  }
   numberAgencies(){
     return agencies.length;
+  }
+
+  @override
+  String toString() {
+    return 'PartnerModel{id: $id, username: $username, fullname: $fullname, address: $address, telephone: $telephone, dateRegister: $dateRegister, agencies: $agencies}';
   }
 }

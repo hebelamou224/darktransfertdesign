@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-Container fieldFirstname(TextEditingController controller) {
+Container fieldFirstname(TextEditingController controller, [FocusNode? node, FocusNode? next]) {
   return Container(
     margin: const EdgeInsets.only(bottom: 10),
     child: TextFormField(
@@ -10,13 +10,17 @@ Container fieldFirstname(TextEditingController controller) {
           labelText: "Prenom*",
           hintText: "Entrer votre prenom"),
       controller: controller,
+      focusNode: node,
+      onEditingComplete: (){
+        next?.nextFocus();
+      },
       validator: (value) =>
           (value == null || value == "") ? "Veuillez entrer le prenom" : null,
     ),
   );
 }
 
-Container fieldLastname(TextEditingController controller) {
+Container fieldLastname(TextEditingController controller,[FocusNode? node, FocusNode? next]) {
   return Container(
     margin: const EdgeInsets.only(bottom: 10),
     child: TextFormField(
@@ -26,13 +30,17 @@ Container fieldLastname(TextEditingController controller) {
           labelText: "Nom*",
           hintText: "Entrer votre nom"),
       controller: controller,
+      focusNode: node,
+      onEditingComplete: (){
+        next?.nextFocus();
+      },
       validator: (value) =>
           (value == null || value == "") ? "Veuillez entrer le nom" : null,
     ),
   );
 }
 
-Container fieldTelephone(TextEditingController controller) {
+Container fieldTelephone(TextEditingController controller, [FocusNode? node, FocusNode? next]) {
   return Container(
     margin: const EdgeInsets.only(bottom: 10),
     child: TextFormField(
@@ -43,13 +51,17 @@ Container fieldTelephone(TextEditingController controller) {
           labelText: "Telephone*",
           hintText: "Entrer votre numero"),
       controller: controller,
+      focusNode: node,
+      onEditingComplete: (){
+        next?.nextFocus();
+      },
       validator: (value) =>
           (value == null || value == "") ? "Veuillez entrer le numero" : null,
     ),
   );
 }
 
-Container fieldEmail(TextEditingController controller) {
+Container fieldEmail(TextEditingController controller, [FocusNode? node, FocusNode? next]) {
   return Container(
     margin: const EdgeInsets.only(bottom: 10),
     child: TextFormField(
@@ -60,6 +72,10 @@ Container fieldEmail(TextEditingController controller) {
           labelText: "Email",
           hintText: "Entrer votre mail"),
       controller: controller,
+      focusNode: node,
+      onEditingComplete: (){
+        next?.nextFocus();
+      },
       //validator: (value) => (value == null || value == "")? "Veuillez entrer le nom" : null,
     ),
   );
@@ -91,7 +107,7 @@ Container fieldPassword(TextEditingController controller) {
   );
 }
 
-Container fieldAddress(TextEditingController controller) {
+Container fieldAddress(TextEditingController controller, [FocusNode? node, FocusNode? next]) {
   return Container(
     margin: const EdgeInsets.only(bottom: 10),
     child: TextFormField(
@@ -103,6 +119,10 @@ Container fieldAddress(TextEditingController controller) {
           labelText: "Addresse*",
           hintText: "Entrer l'adresse"),
       controller: controller,
+      focusNode: node,
+      onEditingComplete: (){
+        next?.nextFocus();
+      },
       validator: (value) => (value == null || value == "")
           ? "Veuillez entrer l'addresse'"
           : null,

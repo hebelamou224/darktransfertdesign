@@ -1,12 +1,12 @@
 import 'package:confirm_dialog/confirm_dialog.dart';
-import 'package:darktransfert/model/employee.dart';
-import 'package:darktransfert/model/user.dart';
 import 'package:darktransfert/repository/user_repository.dart';
+import 'package:darktransfert/service/agency_service.dart';
+import 'package:darktransfert/service/partner_services.dart';
 import 'package:darktransfert/user_connect_info.dart';
 import 'package:darktransfert/view/components/animation_delay.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:kdialogs/kdialogs.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -21,10 +21,13 @@ class _LoginPageState extends State<LoginPage> {
   final formKey = GlobalKey<FormState>();
   bool showVisibilityIcon = true;
   bool isLoading = false;
+  bool isPartener = false;
   FocusNode usernameFocus = FocusNode();
   FocusNode passwordFocus = FocusNode();
 
   UserRepository userRepository = UserRepository();
+  PartnerService partnerService = PartnerService();
+  AgencyService agencyService = AgencyService();
 
 
   @override
@@ -58,12 +61,12 @@ class _LoginPageState extends State<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                DelayAnimation(
+                const DelayAnimation(
                     delay: 2000,
-                    child: Container(
+                    child: SizedBox(
                         height: 110,
                         width: 110,
-                        child: const Image(
+                        child: Image(
                             image: AssetImage("assets/images/logo.png")))),
                 const SizedBox(
                   height: 30,
@@ -132,6 +135,26 @@ class _LoginPageState extends State<LoginPage> {
                           border: const OutlineInputBorder()),
                     )),
                 const SizedBox(
+                  height: 5,
+                ),
+                DelayAnimation(
+                    delay: 3500,
+                    child: Row(
+                      children: [
+                        Checkbox(
+                          value: isPartener,
+                          activeColor: Colors.orange,
+                          onChanged: (value){
+                            setState(() {
+                              isPartener = !isPartener;
+                            });
+                          },
+                        ),
+                        const Text("Je suis un partenaire")
+                      ],
+                    )
+                ),
+                const SizedBox(
                   height: 20,
                 ),
                 isLoading ? const Center(
@@ -166,7 +189,9 @@ class _LoginPageState extends State<LoginPage> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
-                            onPressed: () {},
+                            onPressed: () async {
+                             // await fetchData();
+                            },
                             child: const Text("Mot de pass oublié ?"))
                       ],
                     )),
@@ -179,19 +204,75 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   //Fonction to connect on application
-  Future<void> connect()async{
+  Future<void> connect() async{
     usernameFocus.unfocus();
     passwordFocus.unfocus();
 
-    setState(() {
-      isLoading = true;
-    });
+    if(isPartener){
+      final close = await showKDialogWithLoadingMessage(context, message: "Connection en cours..." );
+      await partnerService.login(
+          controllerUsername.text.trim(),
+          controllerPassword.text.trim()
+      ).then((partner) async{
+        close();
+        if(partner != null){
+          setState(() {
+            UserConnected.id =partner.id;
+            UserConnected.username = partner.username;
+            UserConnected.fullname = partner.fullname;
+            UserConnected.firstname = "";
+            UserConnected.lastname = "";
+            UserConnected.dateConnected = DateTime.now().toString();
+            UserConnected.password = partner.password!;
+            UserConnected.telephone = partner.telephone;
+            UserConnected.dateRegister = partner.dateRegister;
+            UserConnected.identifyAgency = (partner.agencies.isNotEmpty) ? partner.agencies[0].identify : "";
+            //UserConnected.role = partner.role;
+            UserConnected.address = partner.address;
+            UserConnected.partnerModel = partner;
+          });
+          Navigator.popAndPushNamed(context, "/partner");
+        }else{
+          if( await confirm(
+              context,
+              title: const Row(
+                children: [
+                  Icon(Icons.error, color: Colors.red,),
+                  Text("Authentification")
+                ],
+              ),
+              content: const Text("Mot de passe ou nom d'utilisateur incorrect"),
+              textOK: const Text("OK"),
+              textCancel: const Text("Annuler")
+          )){
+          }
+        }
+      }, onError: (err) async{
+        close();
+        if( await confirm(
+            context,
+            title: const Row(
+              children: [
+                Icon(Icons.error, color: Colors.red,),
+                Text("Authentification")
+              ],
+            ),
+            content: const Text("Mot de passe ou nom d'utilisateur incorrect, ou veuillez verifier la disponibilite du service et reesayer. Merci !!"),
+            textOK: const Text("OK"),
+            textCancel: const Text("Annuler")
+        )){
+        }
+      });
+      return;
+    }
+
+    final close = await showKDialogWithLoadingMessage(context, message: "Connection en cours..." );
     await userRepository.findUser(
         controllerUsername.text.trim(),
         controllerPassword.text.trim()
     ).then((employee) async{
       if(employee != null){
-
+        close();
         setState(() {
           UserConnected.id = employee.id;
           UserConnected.username = employee.username;
@@ -206,7 +287,18 @@ class _LoginPageState extends State<LoginPage> {
           UserConnected.role = employee.role;
           UserConnected.address = employee.address;
         });
-
+        await agencyService.findByIdentifyAgency(employee.identifyAgency)
+        .then((agency){
+          if(agency?.owner == "MAIN"){
+            setState(() {
+              UserConnected.mainAgency = true;
+            });
+          }else{
+            setState(() {
+              UserConnected.mainAgency = false;
+            });
+          }
+        });
         if (employee.role == "ADMIN") {
           Navigator.popAndPushNamed(context, "/dg");
         } else if (employee.role == "COMPTABLE") {
@@ -220,6 +312,7 @@ class _LoginPageState extends State<LoginPage> {
         });
       }
     }).catchError((onError) async{
+      close();
       if( await confirm(
           context,
           title: const Row(
@@ -240,26 +333,6 @@ class _LoginPageState extends State<LoginPage> {
         controllerUsername.text = "";
         controllerPassword.text= "";
       }
-      setState(() {
-        isLoading = false;
-      });
-    }).timeout(const Duration(seconds: 30), onTimeout: () async{
-      if( await confirm(
-          context,
-          title: const Row(
-            children: [
-              Icon(Icons.error, color: Colors.red,),
-              Text("Authentification")
-            ],
-          ),
-          content: const Text("Error d'authentification, la connection a mis trop de temps veuillez verifier votre connection au serveur et resseyer"),
-          textOK: const Text("OK"),
-          textCancel: const Text("Annuler")
-      )){
-      }
-    });
-    setState(() {
-      isLoading = false;
     });
   }
 

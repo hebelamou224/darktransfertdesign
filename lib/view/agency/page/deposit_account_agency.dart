@@ -6,7 +6,9 @@ import 'package:darktransfert/model/partner.dart';
 import 'package:darktransfert/service/agency_service.dart';
 import 'package:darktransfert/service/employee_service.dart';
 import 'package:darktransfert/service/partner_services.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:kdialogs/kdialogs.dart';
 
 import '../../../user_connect_info.dart';
 
@@ -23,7 +25,6 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
   String partnerUsername = "";
   late String identifyAgency = "";
 
-  bool isLoading = false;
   bool isLoadingAgencyName = true;
   bool isSelectedPartner = true;
   bool showIconUsernameEmployeeExist = false;
@@ -211,9 +212,7 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
                           },
                         ),
                       ),
-                      isLoading
-                          ? const CircularProgressIndicator(color: Colors.orange,)
-                          : submit(formKey),
+                      submit(formKey),
                     ],
                   )
               )
@@ -232,56 +231,70 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
         onPressed: () async {
           if (formKey.currentState!.validate()) {
             focusAmount.unfocus();
-            setState(() {
-              isLoading = true;
-            });
             //confirm for the deposit
             if(await confirm(
                 context,
-                title: const Text("Alimentation"),
+                title: const Row(
+                  children: [
+                    Icon(Icons.info, color: Colors.green,),
+                    SizedBox(width: 8,),
+                    Text("Confirmation"),
+                  ],
+                ),
                 content: const Text("Confirmez-vous le depôt ?"),
                 textOK: const Text("OUI"),
                 textCancel: const Text("NON"),
             )){
-              await agencyService.findByIdentifyAgency(UserConnected.identifyAgency)
-              .then((value) async{
-                if(value!.account >= double.parse(amountDeposit.text)){
-                  depositOnAccountAgency();
-                }else{
-                  if(await confirm(
-                    context,
-                    title: const Row(
-                      children: [
-                        Icon(Icons.error, color: Colors.red,),
-                        SizedBox(width: 5,),
-                        Text("Alimentation")
-                      ],
-                    ),
-                    content: Text("Solde insuffissant veuillez recharger le compte de l'agence '${value.name}', solde actuel est: ${value.account} GNF"),
-                    textOK: const Text("OK"),
-                    textCancel: const Text("Fermer"),
-                  )){
-                  }
-                }
-              }, onError: (error) async{
-                if(await confirm(
-                    context,
-                    title: const Row(
-                      children: [
-                        Icon(Icons.error, color: Colors.red,),
-                        SizedBox(width: 5,),
-                        Text("Alimentation")
-                      ],
-                    ),
-                    content: const Text("Error de recuperation des informations de l'agence principale"),
-                    textOK: const Text("OK"),
-                    textCancel: const Text("Fermer"),
-                )){
-                }
-              });
+            }else{
+              return;
             }
-            setState(() {
-              isLoading = false;
+
+            final close = await showKDialogWithLoadingMessage(context, message: "Veuillez patienter" );
+            await agencyService.findByIdentifyAgency(UserConnected.identifyAgency)
+                .then((value) async{
+                  close();
+              if(value!.account >= double.parse(amountDeposit.text)){
+                depositOnAccountAgency();
+              }else{
+                showDialog(
+                    context: context,
+                    builder: (builder){
+                      return  AlertDialog(
+                        icon: const Icon(Icons.close, color: Colors.red, size: 50,),
+                        title: const Text("Error"),
+                        content: Text("Solde insuffissant veuillez recharger le compte de l'agence '${value.name}' pour continuer les operation, solde actuel est: ${value.account} GNF"),
+                        actions: [
+                          TextButton(
+                              onPressed: (){
+                                Navigator.pop(context);
+                              },
+                              child: const Text("OK")
+                          )
+                        ],
+                      );
+                    }
+                );
+              }
+            }, onError: (error) async{
+                close();
+                showDialog(
+                    context: context,
+                    builder: (builder){
+                      return  AlertDialog(
+                        icon: const Icon(Icons.close, color: Colors.red, size: 50,),
+                        title: const Text("Error"),
+                        content: const Text("Error de recuperation des informations de l'agence principale, veuillez verifier votre connection et reessayer"),
+                        actions: [
+                          TextButton(
+                              onPressed: (){
+                                Navigator.pop(context);
+                              },
+                              child: const Text("OK")
+                          )
+                        ],
+                      );
+                    }
+                );
             });
           }
         },
@@ -296,21 +309,19 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
 
 
   Future<void> depositOnAccountAgency() async{
-    setState(() {
-      isLoading = true;
-    });
+    final close = await showKDialogWithLoadingMessage(context, message: "Veuillez patienter" );
     agencyService.updateAccountAgencyAfterOperation(
         UserConnected.identifyAgency,
         double.parse(amountDeposit.text),
         "WITHDRAWAL"
     ).then((mainAgency) async{
       if (mainAgency != null) {
-
         agencyService.depositOnAccountAgency(
             partnerUsername,
             identifyAgency,
             double.parse(amountDeposit.text)
         ).then((agency) async{
+          close();
           if(await confirm(
             context,
             title: const Row(
@@ -324,46 +335,51 @@ class _DepositAccountAgencyState extends State<DepositAccountAgency> {
             textOK: const Text("OK"),
             textCancel: const Text("Fermer"),
           )){
-            Navigator.pop(context);
-          }else{
-            Navigator.pop(context);
           }
+          Navigator.pop(context);
         }, onError: (err) async{
-          if(await confirm(
-            context,
-            title: const Row(
-              children: [
-                Icon(Icons.error, size: 40, color: Colors.red,
-                ),
-                Text("Alimentation"),
-              ],
-            ),
-            content: const Text("Une error s'est produit l'ors du depot, veuillez reprendre"),
-            textOK: const Text("OK"),
-            textCancel: const Text("Fermer"),
-          )){
-          }
+          close();
+          showDialog(
+              context: context,
+              builder: (builder){
+                return  AlertDialog(
+                  icon: const Icon(Icons.close, color: Colors.red, size: 40,),
+                  title: const Text("Error"),
+                  content: const Text("Une error s'est produite l'ors du depot, veuillez verifier la connectivité de votre téléphone et reprendre"),
+                  actions: [
+                    TextButton(
+                        onPressed: (){
+                          Navigator.pop(context);
+                        },
+                        child: const Text("OK")
+                    )
+                  ],
+                );
+              }
+          );
         });
         //end succes
       }
     }, onError: (error) async{
-      if(await confirm(
-        context,
-        title: const Row(
-          children: [
-            Icon(Icons.error, size: 40, color: Colors.red,
-            ),
-            Text("Alimentation"),
-          ],
-        ),
-        content: const Text("Error de mise à jour du compte de l'agence principal, veuillez reprendre l'operation"),
-        textOK: const Text("OK"),
-        textCancel: const Text("Fermer"),
-      )){
-      }
-    });
-    setState(() {
-      isLoading = false;
+      close();
+      showDialog(
+          context: context,
+          builder: (builder){
+            return  AlertDialog(
+              icon: const Icon(Icons.close, color: Colors.red, size: 40,),
+              title: const Text("Error"),
+              content: const Text("Error de mise à jour du compte de l'agence principal, veuillez reprendre l'operation"),
+              actions: [
+                TextButton(
+                    onPressed: (){
+                      Navigator.pop(context);
+                    },
+                    child: const Text("OK")
+                )
+              ],
+            );
+          }
+      );
     });
   }
 

@@ -16,6 +16,12 @@ class DetailsAgency extends StatefulWidget {
 
 class _DetailsAgencyState extends State<DetailsAgency> {
 
+  @override
+  void initState() {
+    super.initState();
+   // print(widget.agency.emp.length);
+  }
+
   final style = const TextStyle(
       fontSize: 20,
       fontWeight: FontWeight.w500
@@ -158,12 +164,6 @@ class _DetailsAgencyState extends State<DetailsAgency> {
                 trailing: IconButton(
                   icon: const Icon(Icons.arrow_downward, color: Colors.white, size: 30,),
                   onPressed: (){
-                    /*Navigator.of(context).push(
-                        PageAnimationTransition(
-                            page:  DetailsPartners(partner: snapshot.data![index]),
-                            pageAnimationType: RightToLeftFadedTransition()
-                        )
-                    );*/
                   },
                 ),
               ),
@@ -187,13 +187,28 @@ class _DetailsAgencyState extends State<DetailsAgency> {
                         );
                       },
                     ),
-
+                    onTap: (){
+                      Navigator.of(context).push(
+                          PageAnimationTransition(
+                              page:  DetailsEmployee(employee: employee,),
+                              pageAnimationType: RightToLeftFadedTransition()
+                          )
+                      );
+                    },
                   ),
                 );
               })),
             )
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamedAndRemoveUntil(context, "/dg", (route) => false);
+        },
+        tooltip: "Acceuil",
+        backgroundColor: Colors.orange,
+        child: const Icon(Icons.home_outlined, color: Colors.white,),
       ),
     );
   }
