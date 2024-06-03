@@ -30,6 +30,10 @@ class AgencyService{
     return await agencyRepository.deposit(customer, amount);
   }
 
+  Future<Customer?> depositInternational(Customer customer, double amount) async{
+    return await agencyRepository.deposit(customer, amount);
+  }
+
   Future<AgencyModel?> updateAccountAgencyAfterOperationDeposit(String identifyAgency, double amount)async{
     return await agencyRepository.updateAccountAgencyAfterOperationDeposit(identifyAgency, amount);
   }

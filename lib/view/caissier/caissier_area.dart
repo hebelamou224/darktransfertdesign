@@ -5,7 +5,8 @@ import 'package:darktransfert/service/customer_service.dart';
 import 'package:darktransfert/user_connect_info.dart';
 import 'package:darktransfert/view/agency/persone.dart';
 import 'package:darktransfert/view/caissier/pages/action.dart';
-import 'package:darktransfert/view/caissier/pages/deposit.dart';
+import 'package:darktransfert/view/caissier/pages/deposit_international.dart';
+import 'package:darktransfert/view/caissier/pages/deposit_local.dart';
 import 'package:darktransfert/view/caissier/pages/liste_of_transactions.dart';
 import 'package:darktransfert/view/caissier/pages/search_transaction.dart';
 import 'package:darktransfert/view/caissier/pages/withdrawal.dart';
@@ -407,11 +408,66 @@ class _CaissierAreaState extends State<CaissierArea> {
                 ],
               ),
             ),
-            onTap: () {
-              Navigator.of(context).push(PageAnimationTransition(
-                  page: const DepositAgencyCustome(),
-                  pageAnimationType: RightToLeftFadedTransition()
-                )
+            onTap: () async {
+              showDialog(
+                  context: context,
+                  builder: (builder){
+                    return AlertDialog(
+                      title: const Text("Operation de depot"),
+                      content: SizedBox(
+                        height: 150,
+                        child: Column(
+                          children: [
+                            const Text("Veuillez choissir le mode de transaction"),
+                            Container(
+                              margin: const EdgeInsets.only(top: 10),
+                              width: double.infinity,
+                              child: Card(
+                                elevation: 2,
+                                child: TextButton(
+                                    onPressed: (){
+                                      Navigator.pop(context);
+                                      Navigator.of(context).push(PageAnimationTransition(
+                                          page: const DepositInternationalAgencyCustome(),
+                                          pageAnimationType: RightToLeftFadedTransition()
+                                      )
+                                      );
+                                    },
+                                    child: const Text("Internation")
+                                ),
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.only(top: 10),
+                              width: double.infinity,
+                              child: Card(
+                                elevation: 2,
+                                child: TextButton(
+                                    onPressed: (){
+                                      Navigator.pop(context);
+                                      Navigator.of(context).push(PageAnimationTransition(
+                                          page: const DepositAgencyCustome(),
+                                          pageAnimationType: RightToLeftFadedTransition()
+                                      )
+                                      );
+                                    },
+                                    child: const Text("Local")
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                            onPressed: (){
+                              Navigator.pop(context);
+                            },
+                            child: const Text("Fermer")
+                        )
+                      ],
+                    );
+                  }
               );
             },
           )),

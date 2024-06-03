@@ -5,7 +5,7 @@ import 'package:darktransfert/service/customer_service.dart';
 import 'package:darktransfert/service/partner_services.dart';
 import 'package:darktransfert/user_connect_info.dart';
 import 'package:darktransfert/view/components/animation_delay.dart';
-import 'package:darktransfert/view/components/drawer_menu.dart';
+import 'package:darktransfert/view/components/drawer_men_partner.dart';
 import 'package:darktransfert/view/login.dart';
 import 'package:darktransfert/view/partner/page/action.dart';
 import 'package:darktransfert/view/partner/page/create_personnel.dart';
@@ -111,7 +111,7 @@ class _PartnerPageState extends State<PartnerPage> {
           )
         ],
       ),
-      drawer: const NavigationDrawers(),
+      drawer: const NavigationDrawersPartners(),
       body: mainHome(),
     );
   }

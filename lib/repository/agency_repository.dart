@@ -120,6 +120,47 @@ class AgencyRepository {
     return null;
   }
 
+  Future<Customer?> depositInternational(Customer customer, double amount) async {
+    Uri url = Uri.parse("${CONSTANTE
+        .URL_DATABASE}/operation?amount=$amount&idSource=${UserConnected.id}&identifyAgency=${UserConnected.identifyAgency}");
+    var mode = <String, dynamic>{
+      "id": customer.mode
+    };
+    var data = <String, dynamic>{
+      "identify": customer.identify,
+      "fullname": customer.fullname,
+      "telephone": customer.telephone,
+      "address": customer.address,
+      "numberIdentify": customer.numberIdentify,
+      "mail": customer.mail,
+      "fullnameRecever": customer.fullnameRecever,
+      "phoneRecever": customer.phoneRecever,
+      "addressRecever": customer.addressRecever,
+      "mailRecever": customer.mailRecever,
+      "mode": mode
+    };
+    final response = await http.post(url, body: data, headers: {
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+    });
+    if (response.statusCode == 200) {
+      final object= json.decode(utf8.decode(response.bodyBytes));
+      Customer customer = Customer(id: object["id"],
+          identify: object["identify"],
+          fullname: object["fullname"],
+          telephone: object["telephone"],
+          address: object["address"],
+          numberIdentify: object["numberIdentify"],
+          mail: object["mail"],
+          fullnameRecever: object["fullnameRecever"],
+          phoneRecever: object["phoneRecever"],
+          addressRecever: object["addressRecever"],
+          mailRecever: object["mailRecever"]
+      );
+      return customer;
+    }
+    return null;
+  }
+
   Future<AgencyModel?> updateAccountAgencyAfterOperationDeposit(
       String identifyAgency, double amount) async {
     Uri url = Uri.parse("${CONSTANTE

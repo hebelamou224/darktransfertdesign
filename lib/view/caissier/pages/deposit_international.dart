@@ -5,20 +5,21 @@ import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:darktransfert/model/agency.dart';
 import 'package:darktransfert/model/customer.dart';
 import 'package:darktransfert/service/agency_service.dart';
+import 'package:darktransfert/service/modeTranserfertService.dart';
 import 'package:darktransfert/user_connect_info.dart';
 import 'package:darktransfert/view/caissier/pages/search_transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:page_animation_transition/animations/right_to_left_faded_transition.dart';
 import 'package:page_animation_transition/page_animation_transition.dart';
 
-class DepositAgencyCustome extends StatefulWidget {
-  const DepositAgencyCustome({super.key});
+class DepositInternationalAgencyCustome extends StatefulWidget {
+  const DepositInternationalAgencyCustome({super.key});
 
   @override
-  State<DepositAgencyCustome> createState() => _DepositAgencyCustomeState();
+  State<DepositInternationalAgencyCustome> createState() => _DepositInternationalAgencyCustomeState();
 }
 
-class _DepositAgencyCustomeState extends State<DepositAgencyCustome> {
+class _DepositInternationalAgencyCustomeState extends State<DepositInternationalAgencyCustome> {
 
   final formKey = GlobalKey<FormState>();
   final fullnameSender = TextEditingController();
@@ -32,9 +33,11 @@ class _DepositAgencyCustomeState extends State<DepositAgencyCustome> {
   final phoneRecerver = TextEditingController();
   final amount = TextEditingController();
   AgencyService agencyService = AgencyService();
+  ModeTransfertService modeTransfertService = ModeTransfertService();
   bool isLoadingDeposit = false;
   bool back = false;
   int currentPage = 0;
+  int modeCurrent = -1;
   PageController pageController = PageController(
       initialPage: 0, viewportFraction: 0.9);
 
@@ -67,7 +70,7 @@ class _DepositAgencyCustomeState extends State<DepositAgencyCustome> {
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
-          "Depot d'argent", style: TextStyle(color: Colors.black),),
+          "Depot d'argent international", style: TextStyle(color: Colors.black),),
         leading: IconButton(onPressed: () {
           Navigator.pop(context);
         }, icon: const Icon(Icons.close, color: Colors.redAccent, size: 30,),),
@@ -134,8 +137,48 @@ class _DepositAgencyCustomeState extends State<DepositAgencyCustome> {
                 margin: const EdgeInsets.only(left: 20, right: 20, top: 50),
                 child: Column(
                   children: [
+                    FutureBuilder(
+                        future: modeTransfertService.findAll(),
+                        builder: (context, snapshot){
+                          if(snapshot.connectionState == ConnectionState.waiting){
+                            return const CircularProgressIndicator(color: Colors.orange,);
+                          }else if(snapshot.hasError){
+                            return const Text("Error l'ors du chargement de mode transaction");
+                          }
+                          else{
+                            return DropdownButtonFormField(
+                                decoration: const InputDecoration(
+                                  prefixIcon: Icon(Icons.transfer_within_a_station),
+                                  labelText: "Mode transfert*",
+                                  hintText: "Selectionner un mode *",
+                                  border: OutlineInputBorder(),
+                                  focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Colors.orange, width: 2)),
+                                ),
+                                value: 1,
+                                validator: (value) =>
+                                (value == 0)
+                                    ? "Veuillez selectionner un mode de transfert"
+                                    : null,
+                                items: snapshot.data?.map((mode) {
+                                  print("data snapshot: $mode");
+                                  return DropdownMenuItem(
+                                      value: mode.id,
+                                      child:  Text(mode.name),
+                                  );
+                                }).toList(),
+                                onChanged: (value){
+                                  print('Value mode changed $value');
+                                  modeCurrent = value!;
+
+                                }
+                            );
+                          }
+                        }
+                    ),
                     Container(
-                      margin: const EdgeInsets.only(bottom: 15),
+                      margin: const EdgeInsets.only(bottom: 15, top: 15),
                       child: TextFormField(
                           controller: amount,
                           keyboardType: TextInputType.number,
@@ -151,7 +194,7 @@ class _DepositAgencyCustomeState extends State<DepositAgencyCustome> {
                                       color: Colors.orange, width: 2)),
                               labelText: "Montant*",
                               hintText: "Entrer le montant* Ex: 500000 GNF"),
-                            validator: (value) {
+                          validator: (value) {
                             if (value!.isNotEmpty) {
                               double amount = double.parse(value);
                               if (amount == 0) {
@@ -166,7 +209,8 @@ class _DepositAgencyCustomeState extends State<DepositAgencyCustome> {
                       ),
                     ),
                     isLoadingDeposit? const CircularProgressIndicator(color: Colors.orange,):
-                    SizedBox(
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 25),
                       width: double.infinity,
                       height: 44,
                       child: ElevatedButton(
@@ -187,12 +231,13 @@ class _DepositAgencyCustomeState extends State<DepositAgencyCustome> {
                                   fullnameRecever: fullnameRecever.text,
                                   phoneRecever: phoneRecerver.text,
                                   addressRecever: addressRecever.text,
-                                  mailRecever: mailRecever.text
+                                  mailRecever: mailRecever.text,
+                                  mode: modeCurrent
                               );
                               double amountDeposit = double.parse(amount.text);
 
                               if(await confirm(
-                                  context,
+                                context,
                                 title: const Text("Confirmation"),
                                 content: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,7 +314,7 @@ class _DepositAgencyCustomeState extends State<DepositAgencyCustome> {
                               }
 
                               //sending request saved deposit operation
-                              Future<Customer?> response = agencyService.deposit(customer, amountDeposit);
+                              Future<Customer?> response = agencyService.depositInternational(customer, amountDeposit);
                               response.then((customer){
                                 if(customer != null){
 
@@ -311,7 +356,7 @@ class _DepositAgencyCustomeState extends State<DepositAgencyCustome> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text("Echec d'enregistrement du depot",style:
                                       TextStyle(color: Colors.white)),
-                                      backgroundColor: Colors.red,)
+                                        backgroundColor: Colors.red,)
                                   );
                                 }
                               });
@@ -446,24 +491,24 @@ class _DepositAgencyCustomeState extends State<DepositAgencyCustome> {
               Container(
                 margin: const EdgeInsets.only(bottom: 15),
                 child: TextFormField(
-                  controller: fullnameSender,
-                  decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Colors.orange, width: 2)),
-                      labelText: "Nom complet*",
-                      hintText: "Entrer le nom complet aumoins 4 caracteres*"),
-                  validator: (value) {
-                    if(value!.isEmpty){
-                      return "Veuillez entrer le nom complete";
-                    }else if(value.length < 4){
-                      return "Le nom complet doit etre aumoins 4 caracteres";
-                    }else{
-                      return null;
+                    controller: fullnameSender,
+                    decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.person),
+                        border: OutlineInputBorder(),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors.orange, width: 2)),
+                        labelText: "Nom complet*",
+                        hintText: "Entrer le nom complet aumoins 4 caracteres*"),
+                    validator: (value) {
+                      if(value!.isEmpty){
+                        return "Veuillez entrer le nom complete";
+                      }else if(value.length < 4){
+                        return "Le nom complet doit etre aumoins 4 caracteres";
+                      }else{
+                        return null;
+                      }
                     }
-                  }
 
                 ),
               ),
